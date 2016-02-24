@@ -66,6 +66,7 @@ for W in net.weights:
 net.train(trainingSet,epochs,tolerance)
 
 def test(rep=10):
+    '''A small test function'''
     global trainingSet
     topology = [2,5,5,1]
     net = network(topology)

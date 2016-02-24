@@ -95,7 +95,6 @@ class number(object):
 
 #test script below
 from trainingShapes import shapes2
-topology = [36,50,50,10]
 
 inputs1 = [shape.flatten() for shape in shapes.values()]            #creates a list of the values in the dictionary
 inputs2 = [shape.flatten() for shape in shapes2.values()]
@@ -132,14 +131,15 @@ targets = [np.array([0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5]),        
 trainingSet = list(zip(inputs,targets+targets))
 #trainingSet = list(zip(inputs,targets))
 
+topology = [36,50,50,10]
 net = network(topology,0.04,0.02)
 
-random_out = net.feedforward(inputs[1])
+#random_out = net.feedforward(inputs[1])
 
 epochs = 100
 tolerance = 1E-5
 
 net.train(trainingSet,epochs,tolerance)
-print()
-print(random_out)
+#print()
+#print(random_out)
 

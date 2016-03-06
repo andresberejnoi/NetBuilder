@@ -75,6 +75,18 @@ def decoder_14Bits(gene=np.array([0, 0,0,0,0,0, 0,0,0, 0, 0,0,0,0]) ):
     #text += ")"
     return text
     
+def to_bin(num):
+    """
+    Takes a number in base 10 and converts it to binary.
+    num: a Python base 10 number. It should be a positive integer
+    """    
+    try:
+        assert(type(num)==int)
+    except AssertionError:
+        print ("The number provided must be a positive integer")
+
+            
+        
 def encoder_14Bits(eq_term = "0"):
     """
     Does the opposite of the decoder. Given a string in the form of an equation term, it will return an array with the encoded information.
@@ -83,28 +95,129 @@ def encoder_14Bits(eq_term = "0"):
             Furthermore, to simplify this function, it will be required that the exponent be surrounded by parenthesis after the '^'. Ex: 'x^(2) is good, but 'x^2' will raise an exception.
             Finally, the coefficient must go in front of x, with no symbols in between ('*' or others). Ex: '3x^(2)' is accepted, but '3*x^(2)' or 'x^(2)*3' will raise an exception. 
     """    
-    # if the value is 0, we return the value for zero, without calculation anything
-    if float(eq_term)==0.0:
-        return np.array([0, 0,0,0,0,0, 0,0,0, 0, 0,0,0,0])
-        
-    # Setting variables for the pieces:
-    sign_bit = [0]
-    co_int = [0,0,0,0,0]            #bits for the integer coefficient
-    co_frac =[0,0,0]                # bits for the fractional coefficient
-    x_flag = [0]
-    e_bits = [0,0,0,0]              # bits for the exponent part
     
-    #Split the string into pieces
-    # First check if the equation contains x
-    if "x" in eq_term.lower():
-        pass
-    else:
-        #Check that the coefficient is in the range that can be represented by the 14 bit system
-        # biggest possible coefficient (magnitude only) -> 11111.111 = 31.875, so allowed coefficients must in range [-31.875, 31.875]
-        if (float(eq_term) > 31.875) or (float(eq_term) < -31.875):
-            raise EncoderError("""Coefficient value provided is not in acceptable range.\n Range:[-31.875,31.875]\tGiven: {0}""".format(eq_term))
+    # Setting variables for the pieces:
+    sign_bit = []
+    co_int = []            #bits for the integer coefficient
+    co_frac =[]                # bits for the fractional coefficient, there will be 3, but they will be appended later 
+    x_flag = []
+    e_bits = []              # bits for the exponent part
+    
+    coeff_string = ""    
+    
+    try:
+        float(eq_term)              # This will trigger an exception if the equation contains anything other than numbers
         
-        gene = sign_bit + co_int + co_frac + x_flag + e_bits                # putting the pieces together.
+        x_flag = [0]
+        e_bits = [0,0,0,0]
+        
+        # if the value is 0, we return the value for zero, without calculation anything
+        if float(eq_term)==0.0:
+            return np.array([0, 0,0,0,0,0, 0,0,0, 0, 0,0,0,0])
+
+        coeff_string = eq_term
+        '''
+        #we check if the string has a fractional part
+        if '.' in eq_term:
+            int_str,frac_str = eq_term.split('.')                           #separater integer part from fractional
+        else: 
+            int_str = eq_term
+                
+        if int(int_str) < 0:                        #if the number is negative, the sign bit is 1, otherwise it will be 0
+            sign_bit = [1]
+        else: sign_bit = [0]
+        '''
+        
+    except ValueError:              #we get to this point if the convertion to float from above failed because the string contains more than just numbers
+        
+        x_flag = [1]                # we will assume that if we get to this branch, then x must be present
+        
+        if eq_term.lower().endswith('x'):                                       #If there is nothing after x, then exponent is assumed to be 1
+            e_bits = [0,0,0,1]
+            coeff_string = eq_term[:-1]                                         # we can ignore the x at the end      
+        else:
+            
+            coeff_string, exponent = eq_term.lower().split("x^")                # Separating the string into 2 pieces, the coefficient (together with the sign), and the exponent
+            #handle the exponent bits inside this else clause:
+            exponent = int(exponent[1:len(exponent)-1])                              # This removes the parenthesis of the exponent, and makes it into an integer
+            if (exponent < -7) or (exponent > 8):
+                raise EncoderError("""Exponent is not in correct range.\n Range:[-7,8]\tGiven: {0}""".format(exponent))
+            
+            exponent += 7                                                           # the +7 is to account for the shift value in the exponent for binary interpretation           
+            e_bits = [int(bit) for bit in bin(exponent)[2:]]                        # bin is a built-in function. It returns the binary of an integer as a string, including the leading '0b' part, so the slicing is removing that part of the string
+            
+            #Now make sure that there are exactly 4 bits in e_bits:
+            if len(e_bits) > 4:
+                e_bits = e_bits[:4]                 # gets only the first 4 bits
+            else:
+                reversed_exp = e_bits[::-1]
+                while len(reversed_exp) < 4:
+                    print("reversed_exp: ",reversed_exp)
+                    reversed_exp.append(0)
+                    
+                e_bits = reversed_exp[::-1]
+                print("e_bits:",e_bits)
+        #========================End of Except clause==============================
+   
+   #Check that value is in correct range
+    #print("Coeff_string:",coeff_string)
+    if (float(coeff_string) > 31.875) or (float(coeff_string) < -31.875):
+        raise EncoderError("""Coefficient value provided is not in acceptable range.\n Range:[-31.875,31.875]\tGiven: {0}""".format(coeff_string))
+    # Check whether the number is negative or positive
+    if (float(coeff_string) >= 0):
+        sign_bit = [0]
+    else: 
+        sign_bit = [1]
+        coeff_string = coeff_string[1:]                     # after we used the minus sign, we can remove it from the string because it is no longer needed
+    
+    #Split the coefficient into its parts (integer, fractional):
+    if '.' in coeff_string:
+        int_str,frac_str = coeff_string.split('.')                           #separater integer part from fractional
+        
+        frac_bits = []
+        fraction = float("0."+frac_str)
+        
+        #Convert fraction into binary
+        while fraction != 0:                         
+            fraction = fraction*2
+            #print (fraction)
+            frac_bits.append(int(fraction))
+            fraction = fraction % 1
+        co_frac = frac_bits[:3]                           # We can only store the first 3 fractional bits
+        #we check to make sure there are 3 fractional bits; if there are less, we pad with zeros
+        while len(co_frac) < 3:
+            co_frac.append(0)
+    else: 
+        int_str = coeff_string
+        co_frac = [0,0,0]
+    
+    co_int = [int(bit) for bit in bin(int(int_str))[2:]]
+    
+    #making sure there are exactly 5 bits in the integer part of the coefficient:
+    if len(co_int) > 5:
+        raise EncoderError("There are more than 5 bits in the integer coefficient")
+    else:
+        reversed_int = co_int[::-1]
+        while len(reversed_int) < 5:
+            print("reversed_int: ",reversed_int)
+            reversed_int.append(0)
+            
+        co_int = reversed_int[::-1]
+        print("e_bits:",co_int)
+    
+    
+        
+    
+
+    
+
+    print("bits: ",sign_bit, co_int, co_frac, x_flag, e_bits)
+    gene = sign_bit + co_int + co_frac + x_flag + e_bits                # putting the pieces together.
+    
+    #make sure the output gene has 14-bits exactly:
+    assert(len(gene)==14)
+    
+    return np.array(gene)                           #returns numpy array of the gene
 
 
 #
@@ -151,4 +264,4 @@ def gene_collection():
     x_squared = np.array([0,  0,0,0,0,1,  0,0,0,  1,  1,0,0,1])                 # '+x^(2)'
     other =     np.array([1,  0,1,1,1,0,  0,0,1,  1,  1,0,0,1])                 # '-14.5x^(2)'
     
-    
+encoder_14Bits('0.1x^(2)')    

@@ -95,9 +95,10 @@ def decoder_14Bits(gene=np.array([0, 0,0,0,0,0, 0,0,0, 0, 0,0,0,0]) ):
         if (exp_part == 0):                 # if the exponent is zero, then x will always be 1, and is not necessary to include
             return text
         
-        text += 'x'
+        #text += '*x'
+        text += '*{0}'                      # we add the variable position, but instead of 'x', '{0}' is added so that it can be quickly formatted later with the actual input for the function
         if (exp_part !=1):                  # only include the exponent if exponent is not 1 
-            text += """^({0})""".format(str(exp_part))                              # concatenates the value of the exponent, surrounded by parenthesis to make it easier to read
+            text += """**({0})""".format(str(exp_part))                              # concatenates the value of the exponent, surrounded by parenthesis to make it easier to read
 
     #text += ")"
     return text
@@ -265,17 +266,48 @@ class Equation (object):
         """
         self.gene_mode = gene_mode
         self.numGenes = numGenes
-
-
-    def _initialize_random_genes(self):
         
-        self.genome = [np.random.randint(0,2,14) for i in range(self.numGenes)]
+        # initializing the genome:
+        self.genome = [np.random.randint(0,2,14) for i in range(numGenes)]
+
         
+    #
+    # Getters
+    #
+    def get_fitness(self):
+        return self.fitness
+        
+    
     
     def calculate_fitness(self, target_inputs, target_outputs):
         """
-        Calculates the fitness for the individual by comparing how well its """
+        Calculates the fitness for the individual by comparing how well the terms of the individual
+        can approximate the values of the target outputs when given the inputs.
+        target_inputs: a list or some container with real life input data to a function. For now, only functions of one variable (independent) are supported.
+        target_outputs: a list or some container with real life output from the function trying to be approximated.
+                        Each item here must match each element in target_inputs.        
+        """
+        output_approx = 0
+        error = 0
+        #replace_str = str.replace                       # ill call the replace method from the str class to replace a letter in a string 
+        
+        for x,y in zip(target_inputs,target_outputs):
+            # The whole genome will be used to find how close it is to the desired output
+            for gene in self.genome:
+                
+                #func_gene = decoder_14Bits(gene).replace('x','{0}')             #Replacing the x in the term string for {0} to use the format function. NOT NEEDED NOW. DECODER WAS MODIFIED TO DO THIS ALREADY
+               gene_str_form = decoder_14Bits(gene)
+               print ("Gene: ",gene_str_form)
+               print("bin : ",gene)
+               output_approx += eval(gene_str_form.format(x))                     # string is evaluated with the value of real input x into the variable position in the string (the '{0}' part)                   
             
+            # AFter getting an approximation, we compare with the output we expected and calculate the error in the equation:
+            error += abs(y - output_approx)
+        
+        # A higher score will indicate that an individual is better. 
+        self.fitness = 1/error               # fitness will simply be the inverse of the error for the individual. This may be changed later
+        
+        return self.fitness
         
         
     def mutate(self,mutation_prob=0.01):
@@ -288,13 +320,6 @@ class Equation (object):
                         gene[i] = abs(gene[i]-1)                    # this flips the bit
                         
     
-                        
-        
-
-
-class EquationGA (object):
-    def __init__(self):
-        pass
     
     
 def gene_collection():
@@ -305,4 +330,4 @@ def gene_collection():
     x_squared = np.array([0,  0,0,0,0,1,  0,0,0,  1,  1,0,0,1])                 # '+x^(2)'
     other =     np.array([1,  0,1,1,1,0,  0,0,1,  1,  1,0,0,1])                 # '-14.5x^(2)'
     
-encoder_14Bits('0.1x^(2)')    
+#encoder_14Bits('0.1x^(2)')    

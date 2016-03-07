@@ -6,6 +6,33 @@ Created on Sat Mar  5 00:32:13 2016
 """
 import numpy as np
 
+#==============================================================================
+#   Exception objects
+#
+class GAError(Exception):
+    """The basic template for GA-related exceptions in this file"""
+    def __init__(self):
+        self.msg = "Error occurred"
+        
+    def __str__(self):
+        return self.msg
+        
+    __repr__=__str__
+        
+        
+class DecoderError(Exception):
+    def __init__(self, msg="Gene does not have correct format"):
+        self.msg = msg
+        
+class EncoderError(Exception):
+    def __init__(self, msg="Expression does not have right format"):
+        self.msg = msg
+#
+#==============================================================================
+#
+
+
+
 def decoder_14Bits(gene=np.array([0, 0,0,0,0,0, 0,0,0, 0, 0,0,0,0]) ):
     """
     A gene decoder. It takes the gene as a binary and turns it into the corresponding
@@ -220,35 +247,49 @@ def encoder_14Bits(eq_term = "0"):
     return np.array(gene)                           #returns numpy array of the gene
 
 
-#
-#   Exception objects
-#
-class GAError(Exception):
-    """The basic template for GA-related exceptions in this file"""
-    def __init__(self):
-        self.msg = "Error occurred"
-        
-    def __str__(self):
-        return self.msg
-        
-    __repr__=__str__
-        
-        
-class DecoderError(Exception):
-    def __init__(self, msg="Gene does not have correct format"):
-        self.msg = msg
-        
-class EncoderError(Exception):
-    def __init__(self, msg="Expression does not have right format"):
-        self.msg = msg
+
 
 class Equation (object):
     """
     The methods beloging to an individual member of the population.
     """
-    def __init__(self):
-        pass
+    def __init__(self,gene_mode = 14, numGenes = 10):
+        """
+        Initializer for the equation class. This will be a single individual in the population
+        gene_mode: an int; it tells the initializer how many bits each gene will have. It must be 
+                    one of the modes available.
+        numGenes: an int; The number of genes in the genome. Each individual may have different number
+                    of genes.
+        
+                
+        """
+        self.gene_mode = gene_mode
+        self.numGenes = numGenes
 
+
+    def _initialize_random_genes(self):
+        
+        self.genome = [np.random.randint(0,2,14) for i in range(self.numGenes)]
+        
+    
+    def calculate_fitness(self, target_inputs, target_outputs):
+        """
+        Calculates the fitness for the individual by comparing how well its """
+            
+        
+        
+    def mutate(self,mutation_prob=0.01):
+        for gene in self.genome:
+            r = np.random.random()
+            if mutation_prob > r:
+                for i in len(gene):
+                    r2 = np.random.random()
+                    if mutation_prob > r2:
+                        gene[i] = abs(gene[i]-1)                    # this flips the bit
+                        
+    
+                        
+        
 
 
 class EquationGA (object):

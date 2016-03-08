@@ -58,7 +58,8 @@ def decoder_14Bits(gene=np.array([0, 0,0,0,0,0, 0,0,0, 0, 0,0,0,0]) ):
         assert (len(gene)==14)
     except: 
         raise DecoderError("Gene is not 14 bits long. Using 14-bit decoder")
-    
+    #==========================================================================
+    # Getting the sign of the term (positive or negative)
     #if the coefficient is 0, we will just return 0, without checking the values
     if np.sum(gene[1:9]) == 0:                 #Only add values of coefficient. If x indicator is false, then we do not care about exponents, and if the coefficient is zero, then nothing matters anymore
         text += '+0'
@@ -80,9 +81,24 @@ def decoder_14Bits(gene=np.array([0, 0,0,0,0,0, 0,0,0, 0, 0,0,0,0]) ):
     coeff_frac = gene[6:9][::-1]                    # gets the slice of values for the fractional part of the coefficient
     frac_part = np.sum(coeff_frac * (1 / (2**indices[1:len(coeff_frac)+1]) ) )        # re-using indices to avoid creating a new numpy array for this. The problem is that makes the code less clear
     
+    text += str(int_part)    
+    text += str(frac_part)[1:]                      # the fractional part is added to the text, making sure to only add the digits after the '.' (that is what the slicing is doing, and the '.' is included)
+    
+   
+    '''
     if int_part + frac_part != 1:                   # we will only add the coefficient into the string if it is different than 1. If it is one, we do not need to add it.
         text += str(int_part)    
         text += str(frac_part)[1:]                      # the fractional part is added to the text, making sure to only add the digits after the '.' (that is what the slicing is doing, and the '.' is included)
+    else:
+        #the following if statement should be moved later, so that the presence of x in the equation is not checked more than once
+        if not (gene[9]):                   #if x is not present, add the one coefficient. This should fix a bug when the coefficient was 1 and x was not present, however, the code needs to be organized better.
+            text += '1'
+        else:                               # if x is present:
+            if gene[0]:                     #if the first bit is 1 (when the number is negative) then the 1 from the coefficient will be added. This will solve another problem, also related to the one solved above, but right now this is very messy
+                text += '1'
+    '''
+    
+    
     #==========================================================================
     # Determing if x is present:
     if gene[9]:                    #if the x indicator bit is 1, we will append an x to the string
@@ -96,13 +112,15 @@ def decoder_14Bits(gene=np.array([0, 0,0,0,0,0, 0,0,0, 0, 0,0,0,0]) ):
             return text
         
         #text += '*x'
+        
         text += '*{0}'                      # we add the variable position, but instead of 'x', '{0}' is added so that it can be quickly formatted later with the actual input for the function
         if (exp_part !=1):                  # only include the exponent if exponent is not 1 
             text += """**({0})""".format(str(exp_part))                              # concatenates the value of the exponent, surrounded by parenthesis to make it easier to read
 
     #text += ")"
     return text
-    
+
+'''    
 def to_bin(num):
     """
     Takes a number in base 10 and converts it to binary.
@@ -112,6 +130,7 @@ def to_bin(num):
         assert(type(num)==int)
     except AssertionError:
         print ("The number provided must be a positive integer")
+'''
 
             
         
@@ -254,6 +273,7 @@ class Equation (object):
     """
     The methods beloging to an individual member of the population.
     """
+    BIT_MODES = {14:decoder_14Bits}                 # More bit modes will be added later
     def __init__(self,gene_mode = 14, numGenes = 10):
         """
         Initializer for the equation class. This will be a single individual in the population
@@ -267,17 +287,56 @@ class Equation (object):
         self.gene_mode = gene_mode
         self.numGenes = numGenes
         
-        # initializing the genome:
-        self.genome = [np.random.randint(0,2,14) for i in range(numGenes)]
-
+        try:
+            self.decoder = self.BIT_MODES[gene_mode]
+        except KeyError:
+            print("""Gene mode '{0}' not available. Decoder functions defaults to 14-bit mode.""".format(gene_mode))
+            self.decoder = self.BIT_MODES[14]
+            
         
+        # initializing the genome:
+        self.genome = [np.random.randint(0,2,gene_mode) for i in range(numGenes)]
+
+    #
+    # Overloading
+    #
+    def __len__(self):
+        return len(self.genome)
+    
+    def __iter__(self):
+        """Yields the next element in the sequence"""
+        for gene in self.genome:
+            yield gene
+            
+    def __str__(self):
+        """"""
+        return self.get_equation_string()
+
     #
     # Getters
     #
     def get_fitness(self):
         return self.fitness
         
+    def get_equation_string(self):
+        """
+        Decodes each gene using the decoder function,and returns a string with a 
+        format meant to be read by humans.
+        """
+        str_eq = ''
+        for gene in self.genome:
+            str_eq += self.decoder(gene).replace('{0}','x')
+        return str_eq
+        
     
+    #
+    # Useful functions:
+    #        
+
+        
+    #
+    # GA functions:
+    #
     
     def calculate_fitness(self, target_inputs, target_outputs):
         """
@@ -297,8 +356,8 @@ class Equation (object):
                 
                 #func_gene = decoder_14Bits(gene).replace('x','{0}')             #Replacing the x in the term string for {0} to use the format function. NOT NEEDED NOW. DECODER WAS MODIFIED TO DO THIS ALREADY
                gene_str_form = decoder_14Bits(gene)
-               print ("Gene: ",gene_str_form)
-               print("bin : ",gene)
+               #print ("Gene: ",gene_str_form)
+               #print("bin : ",gene)
                output_approx += eval(gene_str_form.format(x))                     # string is evaluated with the value of real input x into the variable position in the string (the '{0}' part)                   
             
             # AFter getting an approximation, we compare with the output we expected and calculate the error in the equation:
@@ -314,7 +373,7 @@ class Equation (object):
         for gene in self.genome:
             r = np.random.random()
             if mutation_prob > r:
-                for i in len(gene):
+                for i in range(len(gene)):
                     r2 = np.random.random()
                     if mutation_prob > r2:
                         gene[i] = abs(gene[i]-1)                    # this flips the bit

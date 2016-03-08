@@ -148,7 +148,7 @@ class Population(object):
             pos = fitnesses.index(min_val)
             positions.append(pos)
             fitnesses.pop(pos)
-        return positons
+        return positions
         
         '''
         fitnesses.sort()
@@ -183,23 +183,32 @@ class Population(object):
         
         #How many generations will there be:
         avg_fit = self.calculate_population_fitness()
-        for i in range(200):
-            print("Average Fitness: ",avg_fit)
-            self.mutation(0.35)                     # I'm setting a really high mutation rate because crossover is not implemented, so this is the only way for the population to change
-            avg_fit = self.calculate_population_fitness()
+        for i in range(50):
+            print("Fitness: ",avg_fit, "Iteration: ",i )
             self.set_new_generation()
+            self.mutation(0.45)                     # I'm setting a really high mutation rate because crossover is not implemented, so this is the only way for the population to change
+            avg_fit = self.calculate_population_fitness()
+            
             
         # Get the best individual:
-        best = 0,0
+        best = (0,0)
         for i in range(self.size):
-            (current_best,pos) = self.equations[i].get_fitness(),i
+            current_best = self.equations[i].get_fitness(),i
             if current_best[0] > best[0]:
                 best = current_best
         
         best_equation = self.equations[best[1]]
         
-        str_eq = decoder_14Bits(best_equation)
+        str_eq = str(best_equation)
+        print ("Equation: ",str_eq, "fitness: ", best_equation.get_fitness())        
+        
+        '''
+        str_eq = ''
+        for gene in best_equation:
+            str_eq += decoder_14Bits(gene)
+        
         print("Winner: ",str_eq)
+        '''
         return str_eq
         
         

@@ -37,6 +37,8 @@ class Population(object):
         self.equations = []             #a list that will contain all the individuals in the population
         self.filename = filename
         
+        #self.crossover = crossover_AND
+        
         self.rand = np.random.randint       # a shortcut to numpy's random.randint function. This could speed up the process
         
         #Target inputs and outputs will be loaded
@@ -111,6 +113,22 @@ class Population(object):
         for equation in self.equations:
             equation.mutate(mutation_prob)
             
+    def crossover_AND(self):
+        """
+        The offspring of two individuals will be the result of the logical AND operation on their genes        
+        """
+        #Calculate how many will be replaced:
+        numSurvivors = int(self.size*self.survival_rate)
+        left4Dead = self.size - numSurvivors
+        
+        # find the positions of worst individuals:
+        positions = self._find_worst_performing(left4Dead)
+        
+        for idx in positions:
+            self.equations[idx] = np.bitwise_and(parent1, parent2)
+        
+        
+        
     
     def set_new_generation(self):
         """Based on the survival rate parameter, it will remove the worst performing individuals
@@ -127,12 +145,6 @@ class Population(object):
         
         for idx in positions:
             self.equations[idx] = Equation(14,self.rand(1,15))
-        
-        
-        
-    
-
-
     
     def _find_worst_performing(self,num):
         """
@@ -167,14 +179,8 @@ class Population(object):
         
         self.equations = np.array(eq_population)
         '''
-        
-            
-        
-    
-                
-        
-            
-    
+  
+           
     def evolve(self):
         """
         Puts the functions together.

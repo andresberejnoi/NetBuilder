@@ -50,6 +50,9 @@ class network(object):
     """
     #np.random.seed()                       # start the random seed before using it
     #np.random.random()
+    #Set up a dictionary of activation functions to access them more easily
+    functions = {'tanh':tanh,'sigmoid':sigmoid}
+
     def __init__(self,topology,learningRate=0.1, momentum=0.1):
         '''
         topology: A Python list with integers indicating the shape of the network. 
@@ -66,14 +69,10 @@ class network(object):
         self.learningRate = learningRate
         self.momentum = momentum
         
-        #Set up a dictionary of activation functions to access them more easily
-        self.functions = {'tanh':tanh,'sigmoid':sigmoid}
-        
+                
         # Initialize random weights, and create empty matrices to store the previous changes in weight (for momentum):
-        self.weights = []
-        self.last_change = []
-
-        self.weights = [np.random.normal(loc=0,scale=0.1,size=(topology[i]+1, topology[i+1])) for i in range(self.size)]  
+       
+        self.weights = [np.random.normal(loc=0,scale=0.6,size=(topology[i]+1, topology[i+1])) for i in range(self.size)]  
         self.last_change = [np.zeros( (topology[i]+1 , topology[i+1] ) ) for i in range(self.size)]
         #self.weights = [np.random.normal(loc=0,scale=0.1,size=( topology[i+1], topology[i]+1)) for i in range(self.size)]
         #self.last_change = [np.zeros( (topology[i+1],topology[i]+1) ) for i in range(self.size)]
@@ -93,6 +92,7 @@ class network(object):
         # Initialize activation functions.
         self.outActiv_fun = tanh
         self.hiddenActiv_fun = tanh
+        self.Gradients = [None]*self.size
          
             
     #  
@@ -187,14 +187,11 @@ class network(object):
         
         """
         I = np.array(outIn)
-        #counter = 0
         for W in self.weights[::-1]:                # We traverse backwards through the weight matrices
             I = np.dot(W,I)[:-1]                #The dot product of the two numpy arrays will have one extra element, corresponding to the bias node, and we do not need it, so we slice it off
-            #counter += 1
         return I
             
-            
-        
+                   
         
     def backprop(self,inputs,target,batch=False):
         """
@@ -203,7 +200,7 @@ class network(object):
         target: a vector of expected values correspoding to the inputs vector
         batch: boolean flag. Indicates whether to use batch or online training. BATCH NOT IMPLEMENTED
         """
-        Gradients = [None]*self.size                        # it will have the same size as self.weights
+        #Gradients = [None]*self.size                        # it will have the same size as self.weights
         
         output = self.feedforward(inputs)                                       # performs forward propagation of the inputs 
         
@@ -218,33 +215,22 @@ class network(object):
                 # First, we calculate the delta for the output layer by taking the partial derivatives of the error function and more
                 delta = (output-target) * self.outActiv_fun(self.netIns[back_index], derivative=True)
                 gradients = np.outer(self.netOuts[back_index], delta)
-                Gradients[back_index] = gradients
-                
-                #print("="*80)
-                #print("Output delta: ",delta)
-                #print('='*80)
+                self.Gradients[back_index] = gradients
+
             else:
                 # The calculation for the hidden deltas is slightly different than for the output neurons
-                #W_with_bias = self.weights[back_index+1]                                  # gets the weight matrix for the layer that was left behind
                 W = self.weights[back_index+1]                
-                #W = np.delete(W_with_bias, W_with_bias.shape[1]-1,1)                        # and creates a new matrix without the bias values
-                
-                #print("Matrix: ",W)
-                #print("last delta: ", delta)
-                #print("new delta: ", np.dot(W,delta)[:-1])
                 delta = np.dot(W,delta)[:-1] * self.hiddenActiv_fun(self.netIns[back_index], derivative=True)              #we slice off the delta value corresponding to the bias node
                 #delta = np.dot(delta, W) * self.hiddenActiv_fun(self.netOuts[back_index], derivative=True)
                 gradients = np.outer(self.netOuts[back_index], delta)           # the transpose is necessary to get a matrix of the correct shape. This can be avoided by changing the way the matrix is represented
                 
-                Gradients[back_index] = gradients
-            
-        self.Gradients = Gradients
-        
+                self.Gradients[back_index] = gradients
+                    
         # Update the weights on every training sample, because this is online training
         for i in range(self.size):
-            delta_weight = self.learningRate*Gradients[i]
+            delta_weight = self.learningRate * self.Gradients[i]
             self.weights[i] -= delta_weight + self.momentum*self.last_change[i]
-            self.last_change[i] = Gradients[i]
+            self.last_change[i] = self.Gradients[i]
             
         return error
     

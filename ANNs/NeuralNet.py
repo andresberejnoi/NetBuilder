@@ -72,6 +72,14 @@ class network(object):
         # Initialize random weights, and create empty matrices to store the previous changes in weight (for momentum):
         self.weights = []
         self.last_change = []
+
+        self.weights = [np.random.normal(loc=0,scale=0.1,size=(topology[i]+1, topology[i+1])) for i in range(self.size)]  
+        self.last_change = [np.zeros( (topology[i]+1 , topology[i+1] ) ) for i in range(self.size)]
+        #self.weights = [np.random.normal(loc=0,scale=0.1,size=( topology[i+1], topology[i]+1)) for i in range(self.size)]
+        #self.last_change = [np.zeros( (topology[i+1],topology[i]+1) ) for i in range(self.size)]
+        
+        
+        '''
         for i in range(len(topology)-1):
             #Every layer has a bias node, so each matrix will have extra weights correspoding to the connections from that bias node
             #The rows of the matrix correspond to neurons in next layer, while columns correspond to nodes in previous layer.
@@ -79,7 +87,9 @@ class network(object):
             # matrix shapes will be: input-to-hidden -> 10x6, hidden-to-out -> 1x11; the +1 on the columns is the result of having a bias node on that layer
             self.weights.append(np.random.normal(loc=0,scale=0.1,size=(topology[i+1],topology[i]+1)))           #weight values are initialized randomly, between -0.1 and 0.1
             self.last_change.append(np.zeros( (topology[i+1],topology[i]+1) ))                                  #creating empty matrices to keep track of previous gradients. this will be used along with the momentum term during backpropagation
-                    
+            
+        '''
+        
         # Initialize activation functions.
         self.outActiv_fun = tanh
         self.hiddenActiv_fun = tanh
@@ -149,7 +159,7 @@ class network(object):
             for idx in range(self.size):
                 W = self.weights[idx]
                 
-                I = np.dot(W,I)                                                 #performs the dot product between the input vector and the weight matrix
+                I = np.dot(I,W)                                                 #performs the dot product between the input vector and the weight matrix
                 self.netIns.append(I)                                           # keeping track of the inputs to each layer
                 
                 #if we are on the last layer, we use the output activation function
@@ -177,10 +187,10 @@ class network(object):
         
         """
         I = np.array(outIn)
-        counter = 0
+        #counter = 0
         for W in self.weights[::-1]:                # We traverse backwards through the weight matrices
-            I = np.dot(I,W)[:-1]                #The dot product of the two numpy arrays will have one extra element, corresponding to the bias node, and we do not need it, so we slice it off
-            counter += 1
+            I = np.dot(W,I)[:-1]                #The dot product of the two numpy arrays will have one extra element, corresponding to the bias node, and we do not need it, so we slice it off
+            #counter += 1
         return I
             
             
@@ -207,15 +217,24 @@ class network(object):
             if i==0:
                 # First, we calculate the delta for the output layer by taking the partial derivatives of the error function and more
                 delta = (output-target) * self.outActiv_fun(self.netIns[back_index], derivative=True)
-                gradients = np.outer(self.netOuts[back_index], delta).transpose()
+                gradients = np.outer(self.netOuts[back_index], delta)
                 Gradients[back_index] = gradients
+                
+                #print("="*80)
+                #print("Output delta: ",delta)
+                #print('='*80)
             else:
                 # The calculation for the hidden deltas is slightly different than for the output neurons
-                W_with_bias = self.weights[back_index+1]                                  # gets the weight matrix for the layer that was left behind
-                W = np.delete(W_with_bias, W_with_bias.shape[1]-1,1)                        # and creates a new matrix without the bias values
-                delta = np.dot(delta, W) * self.hiddenActiv_fun(self.netIns[back_index], derivative=True)
+                #W_with_bias = self.weights[back_index+1]                                  # gets the weight matrix for the layer that was left behind
+                W = self.weights[back_index+1]                
+                #W = np.delete(W_with_bias, W_with_bias.shape[1]-1,1)                        # and creates a new matrix without the bias values
+                
+                #print("Matrix: ",W)
+                #print("last delta: ", delta)
+                #print("new delta: ", np.dot(W,delta)[:-1])
+                delta = np.dot(W,delta)[:-1] * self.hiddenActiv_fun(self.netIns[back_index], derivative=True)              #we slice off the delta value corresponding to the bias node
                 #delta = np.dot(delta, W) * self.hiddenActiv_fun(self.netOuts[back_index], derivative=True)
-                gradients = np.outer(self.netOuts[back_index], delta).transpose()           # the transpose is necessary to get a matrix of the correct shape. This can be avoided by changing the way the matrix is represented
+                gradients = np.outer(self.netOuts[back_index], delta)           # the transpose is necessary to get a matrix of the correct shape. This can be avoided by changing the way the matrix is represented
                 
                 Gradients[back_index] = gradients
             

@@ -168,6 +168,24 @@ class network(object):
             """implement batch training"""
             pass
         
+    def reversed_feed(self, outIn):
+        """
+        similar to the feedforward function but reversed. It takes an output or target vector,
+        and returns the corresponding input vector. Nothing is stored by this function.
+        
+        outIn: the target vector that will be the input for this function. It would be the output of the normal feedforward fucntion.
+        
+        """
+        I = np.array(outIn)
+        counter = 0
+        for W in self.weights[::-1]:                # We traverse backwards through the weight matrices
+            I = np.dot(I,W)[:-1]                #The dot product of the two numpy arrays will have one extra element, corresponding to the bias node, and we do not need it, so we slice it off
+            counter += 1
+        return I
+            
+            
+        
+        
     def backprop(self,inputs,target,batch=False):
         """
         Backpropagation (online)

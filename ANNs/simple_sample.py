@@ -10,7 +10,7 @@ import numpy as np
 
 '''
 Because of the tanh functions used by default for the activations of the network,
-better results are obtained by using --0.5.5 instead of -0.5 and -0.5.5 instead of 0.5. So, for example,
+better results are obtained by using -0.5 instead of 0 and 0.5 instead of 1. So, for example,
 the truth table for the AND gate will be as:
     -0.5 -0.5 | -0.5
     -0.5  0.5 | -0.5
@@ -64,7 +64,7 @@ net.train(trainingSet,epochs,tolerance)         #training begins
 
 #Now, show the results of training
 #It would be better to create a function to display this information in a better way
-print("--------------------------------")
+print("="*80)      #will 80 '=' signs to separate the line
 print("Testing network:")
 print("INPUTS    |\tPREDICTION\t   | EXPECTED")
 for inputs,target in trainingSet:

@@ -53,7 +53,7 @@ class network(object):
     #Set up a dictionary of activation functions to access them more easily
     functions = {'tanh':tanh,'sigmoid':sigmoid}
 
-    def __init__(self,topology,learningRate=0.1, momentum=0.1):
+    def __init__(self,topology=[2,5,5,1],learningRate=0.1, momentum=0.1, loadfile=None):
         '''
         topology: A Python list with integers indicating the shape of the network. 
                     i.e: [5,10,1]: this encodes a network of 3 layers (one input, 1 hidden, and 1 output). 
@@ -62,32 +62,54 @@ class network(object):
         learningRate: a float that helps with the speed and convergence of the network. It is usually small.
                         A very small number will cause the network to converge very slowly. A high rate will make
                         the network oscillate during training and prevent it from "learning" patterns.
-        momentum: A float, also used during the training process
+        momentum: A float, also used during the training process. It is related to how much the previous changes
+                        affect the new ones.
         '''
-        self.topology = topology
-        self.size = len(topology)-1                                             #The size of the network will be the number of weeight matrices between layers, instead of the number of layers itself
-        self.learningRate = learningRate
-        self.momentum = momentum
         
-                
-        # Initialize random weights, and create empty matrices to store the previous changes in weight (for momentum):
-       
-        self.weights = [np.random.normal(loc=0,scale=0.6,size=(topology[i]+1, topology[i+1])) for i in range(self.size)]  
-        self.last_change = [np.zeros( (topology[i]+1 , topology[i+1] ) ) for i in range(self.size)]
-        #self.weights = [np.random.normal(loc=0,scale=0.1,size=( topology[i+1], topology[i]+1)) for i in range(self.size)]
-        #self.last_change = [np.zeros( (topology[i+1],topology[i]+1) ) for i in range(self.size)]
-        
-        
-        '''
-        for i in range(len(topology)-1):
-            #Every layer has a bias node, so each matrix will have extra weights correspoding to the connections from that bias node
-            #The rows of the matrix correspond to neurons in next layer, while columns correspond to nodes in previous layer.
-            #i.e. network [5,10,1] will have 2 weight matrices, one from input to hidden, then from hidden to output and 
-            # matrix shapes will be: input-to-hidden -> 10x6, hidden-to-out -> 1x11; the +1 on the columns is the result of having a bias node on that layer
-            self.weights.append(np.random.normal(loc=0,scale=0.1,size=(topology[i+1],topology[i]+1)))           #weight values are initialized randomly, between -0.1 and 0.1
-            self.last_change.append(np.zeros( (topology[i+1],topology[i]+1) ))                                  #creating empty matrices to keep track of previous gradients. this will be used along with the momentum term during backpropagation
+        if loadfile is None:                    # this will be used when the network parameters are provided instead of a file to read from
+            self.topology = topology
+            self.size = len(topology)-1                                             #The size of the network will be the number of weeight matrices between layers, instead of the number of layers itself
+            self.learningRate = learningRate
+            self.momentum = momentum
             
-        '''
+                    
+            # Initialize random weights, and create empty matrices to store the previous changes in weight (for momentum):
+           
+            self.weights = [np.random.normal(loc=0,scale=0.6,size=(topology[i]+1, topology[i+1])) for i in range(self.size)]  
+            self.last_change = [np.zeros( (topology[i]+1 , topology[i+1] ) ) for i in range(self.size)]
+            #self.weights = [np.random.normal(loc=0,scale=0.1,size=( topology[i+1], topology[i]+1)) for i in range(self.size)]
+            #self.last_change = [np.zeros( (topology[i+1],topology[i]+1) ) for i in range(self.size)]
+            
+            
+            '''
+            for i in range(len(topology)-1):
+                #Every layer has a bias node, so each matrix will have extra weights correspoding to the connections from that bias node
+                #The rows of the matrix correspond to neurons in next layer, while columns correspond to nodes in previous layer.
+                #i.e. network [5,10,1] will have 2 weight matrices, one from input to hidden, then from hidden to output and 
+                # matrix shapes will be: input-to-hidden -> 10x6, hidden-to-out -> 1x11; the +1 on the columns is the result of having a bias node on that layer
+                self.weights.append(np.random.normal(loc=0,scale=0.1,size=(topology[i+1],topology[i]+1)))           #weight values are initialized randomly, between -0.1 and 0.1
+                self.last_change.append(np.zeros( (topology[i+1],topology[i]+1) ))                                  #creating empty matrices to keep track of previous gradients. this will be used along with the momentum term during backpropagation
+                
+            '''
+        else:                           #when the file is provided:
+            while True:
+                try:
+                    self.weights = np.load(loadfile)
+                    break
+                    #self.size = len(self.weights)
+                except FileNotFoundError:
+                    print("""File '{0}' is was not found.""".format(loadfile))
+                    loadfile = input("Please enter an available file (to cancel type 'break'): ")
+                    if loadfile.lower() == 'break':
+                        raise NetworkError("Could not initialize the network")
+            
+            self.size = len(self.weights)
+            self.learningRate = learningRate
+            self.momentum = momentum
+            self.topology = [(M.shape[0]-1) for M in self.weights]
+            self.topology.append(self.weights[-1].shape[1])             
+            
+            
         
         # Initialize activation functions.
         self.outActiv_fun = tanh
@@ -141,6 +163,19 @@ class network(object):
     #
     # Functionality of the network
     #
+    
+    def save(self, filename):
+        """
+        Saves the weights of the network stored in self.weights using numpy 'save' method.
+        
+        filename: a string or file object where the information will be saved        
+        """
+        try:
+            np.save(filename,self.weights)
+            print("Weights were saved successfully")
+        except:
+            print("There was an error saving the weights")
+
     def feedforward(self,inputs, batch=False):
         """
         Performs the feedforward propagation of the inputs through the layers.

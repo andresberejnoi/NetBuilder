@@ -59,7 +59,7 @@ tolerance = 1E-12
 trainingSet = xor                           #change this to any of the training sets above: trainingSet = aand, etc
 
 
-net = network(topology, learningRate=0.1, momentum=0.3)
+net = network(topology, learningRate=0.1, momentum=0.1)
 net.train(trainingSet,epochs,tolerance)         #training begins
 
 #Now, show the results of training

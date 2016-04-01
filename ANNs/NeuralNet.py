@@ -116,7 +116,9 @@ class network(object):
         self.hiddenActiv_fun = tanh
         self.Gradients = [None]*self.size
          
-            
+    # Initializer helpers
+    
+    
     #  
     # Overloading Operators:
     #
@@ -223,7 +225,7 @@ class network(object):
         """
         I = np.array(outIn)
         for W in self.weights[::-1]:                # We traverse backwards through the weight matrices
-            I = np.dot(W,I)[:-1]                #The dot product of the two numpy arrays will have one extra element, corresponding to the bias node, and we do not need it, so we slice it off
+            I = np.dot(W,I)[:-1]                #The dot product of the two numpy arrays will have one extra element, corresponding to the bias node, but we do not need it, so we slice it off
         return I
             
                    
@@ -285,7 +287,7 @@ class network(object):
         return epoch_error
         
     
-    def train(self,trainingSet,epochs=1000,threshold_error = 1E-10):
+    def train(self,trainingSet,epochs=1000,threshold_error = 1E-10, batch = False):
         """
         Trains the network for the specified number of epochs.
         trainingSet: a list of tuples pairing inputs,targets for each training example.
@@ -297,14 +299,29 @@ class network(object):
                             of epochs has been reached.
         """
         
-        for i in range(epochs+1):
-            error = self.trainEpoch(trainingSet)
+        if not batch:
+            # Online training is performaed
+            for i in range(epochs+1):
+                error = self.trainEpoch(trainingSet)
+                
+                if i % (epochs/100) == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
+                    self.print_stateOfTraining(i,error)
+                if error <= threshold_error:                                        # when the error of the network is less than the threshold, the traning can stop
+                    self.print_stateOfTraining(i,error, finished=True)
+                    break
+        else:
+            # When batch training is required:
+            for i in range(epochs+1):
+                
+                error = "Calculate here"
+                
+                if i % (epochs/100) == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
+                    self.print_stateOfTraining(i,error)
+                if error <= threshold_error:                                        # when the error of the network is less than the threshold, the traning can stop
+                    self.print_stateOfTraining(i,error, finished=True)
+                    break
+                
             
-            if i % (epochs/100) == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
-                self.print_stateOfTraining(i,error)
-            if error <= threshold_error:                                        # when the error of the network is less than the threshold, the traning can stop
-                self.print_stateOfTraining(i,error, finished=True)
-                break
     
     
     

@@ -132,11 +132,12 @@ trainingSet = list(zip(inputs,targets+targets))
 #trainingSet = list(zip(inputs,targets))
 
 topology = [36,50,50,10]
-net = network(topology,0.04,0.02)
+net = network(topology,0.01,0.01)
+net.save("recog_number_weights.csv", transpose=True, keep_bias=False)
 
 #random_out = net.feedforward(inputs[1])
 
-epochs = 100
+epochs = 10000
 tolerance = 1E-5
 
 net.train(trainingSet,epochs,tolerance)

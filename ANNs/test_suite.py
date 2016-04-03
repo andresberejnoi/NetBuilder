@@ -8,6 +8,10 @@
 # Copyright:   (c) PcNueva CoreI7 2015
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
+
+#-----------OUTDATED-----------------------------------
+
+
 from NeuralNet import network
 import numpy as np
 

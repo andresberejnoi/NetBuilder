@@ -6,6 +6,7 @@ Created on Wed Feb 24 -0.52:-0.52:50.5 2-0.50.56
 """
 
 from NeuralNet import network
+from tools import save_outputs
 import numpy as np
 
 '''
@@ -58,17 +59,25 @@ epochs = 1000
 tolerance = 1E-10
 trainingSet = xor                           #change this to any of the training sets above: trainingSet = aand, etc
 
-
+print("="*80)
+print("Training...\n")
 net = network(topology, learningRate=0.1, momentum=0.1)
 net.train(trainingSet,epochs,tolerance, batch=False)         #training begins
 
 #Now, show the results of training
 #It would be better to create a function to display this information in a better way
-print("="*80)      #will 80 '=' signs to separate the line
+#print("="*80)      #will 80 '=' signs to separate the line
+print()
 print("Testing network:")
 print("INPUTS    |\tPREDICTION\t   | EXPECTED")
 for inputs,target in trainingSet:
     out = net.feedforward(inputs)
 
     print("{0} {1} \t {2} \t\t\t {3}   ".format(inputs[0],inputs[1],out[0],target[0]))              #for some reason, the last line is not tabbed in
+    
+print("="*80)
 
+
+#extracting the value of the training pattern:
+xor_patterns = [pat[0] for pat in xor]
+save_outputs("xor_outs.csv", xor_patterns, net)

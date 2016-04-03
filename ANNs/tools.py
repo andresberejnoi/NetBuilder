@@ -4,7 +4,8 @@ Created on Fri Apr  1 21:32:58 2016
 
 @author: andresberejnoi
 
-Purpose: Some useful functions. I still need to add comments to this
+Purpose: Some useful functions. I still need to add comments to this. 
+        Some of them will probably be moved to the main NeuralNet.py file later
 """
 import numpy as np
 
@@ -18,9 +19,7 @@ def read_weights(weights_file, is_transpose = True, add_bias= True):
         It needs to be organized better. 
         """
         from itertools import islice       
-        
-        
-        handler = open(weights_file, 'rb')
+        handler = open(weights_file, 'rb')                  # opening file in binary read mode
         '''
         temp_topo = handler.readline().rstrip('\n').split(',')
         topology = []
@@ -58,12 +57,12 @@ def read_weights(weights_file, is_transpose = True, add_bias= True):
         else:
             # we go here when is_transpose is true
             for i in range(len(topology) - 1):
-                print("="*80)
-                print("i: ",i)
+                #print("="*80)
+                #print("i: ",i)
                 read_until_row = int(topology[i+1])                 # Determines until what row the file should be sliced
-                print("Rows to read: ",read_until_row)
+                #print("Rows to read: ",read_until_row)
                 M = np.genfromtxt(islice(handler, read_until_row), delimiter=',', usecols = range(int(topology[i])))
-                M = np.atleast_2d(M)
+                M = np.atleast_2d(M)            # this ensures that the resulting vector will always be a 2D matrix (if it is a single row, then the shape will be something like (1,20) for example.)
                 weights.append(M)
                 #weights.append( np.atleast_2d(np.genfromtxt(islice(handler, read_until_row), delimiter=',', usecols = range(int(topology[i])) )  )
                 
@@ -73,28 +72,59 @@ def read_weights(weights_file, is_transpose = True, add_bias= True):
             weights = [Mat.transpose() for Mat in weights]
                 
                 
-        
+        '''
         #Testing Below:
         for Mat in weights:
             print("Mat shape: ", Mat.shape)
+        '''
         
         if add_bias is True:
             '''Add bias'''
             for k in range(len(weights)):
-                print("="*80)
-                print('Row: ', k)
-                print("Mat shape: ", weights[k].shape)
-                print("\n Mat:")
-                print(weights[k])
+                #print("="*80)
+                #print('Row: ', k)
+                #print("Mat shape: ", weights[k].shape)
+                #print("\n Mat:")
+                #print(weights[k])
             
                 bias_row = np.random.normal(scale=0.1, size=(1,topology[k+1]))          # creates a row of random values and the correct size
-                print("\nBias row: ")                
-                print(bias_row)
+                #print("\nBias row: ")                
+                #print(bias_row)
                 
                 weights[k] = np.vstack([weights[k], bias_row])                             # appends a new row to the weights file
                 
         handler.close()                 #closing file
         return topology, weights
+
+def save_outputs(output_file,Patterns, net):
+    """
+    It takes patterns and performs feedforward passes on it, and the output is saved to a file.
+    
+    output_file: a string; this is how the output file will be named. It should be a .csv file to be
+                compatible with the network class at the moment.
+    patterns: a list of patterns, or a str of the filename where the patterns should be read from
+    
+    """
+    handler = open(output_file, 'wb')
+    if type(Patterns) == str:
+        # if the value provided for patterns is a str, the function will attempt to open it as a 
+        pattern_file = open(Patterns, 'r')             # if the file does not exit, the exception FileNotFoundError will be raised
+        
+        for line in pattern_file:
+            pattern = [float(num) for num in line.rstrip('\n').split(',')]
+            out = np.atleast_2d(net.feedforward(pattern))          # computes the output
+            np.savetxt(handler, out, delimiter=',')     # output is saved to file
+        pattern_file.close()
+    else:
+        
+        for pattern in Patterns:
+            out = np.atleast_2d(net.feedforward(pattern))
+            print(out.shape)
+            np.savetxt(handler, out, delimiter=',')
+    
+    handler.close()
+    
+
 
 '''
 

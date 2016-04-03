@@ -55,12 +55,12 @@ oor = [(array[0],array[1]) for array in oor]
 #Setting up the network
 topology = [2,10,10,1]
 epochs = 1000
-tolerance = 1E-12
+tolerance = 1E-10
 trainingSet = xor                           #change this to any of the training sets above: trainingSet = aand, etc
 
 
 net = network(topology, learningRate=0.1, momentum=0.1)
-net.train(trainingSet,epochs,tolerance)         #training begins
+net.train(trainingSet,epochs,tolerance, batch=False)         #training begins
 
 #Now, show the results of training
 #It would be better to create a function to display this information in a better way
@@ -70,5 +70,5 @@ print("INPUTS    |\tPREDICTION\t   | EXPECTED")
 for inputs,target in trainingSet:
     out = net.feedforward(inputs)
 
-    print("{0} {1}\t{2}\t{3}   ".format(inputs[0],inputs[1],out[0],target[0]))              #for some reason, the last line is not tabbed in
+    print("{0} {1} \t {2} \t\t\t {3}   ".format(inputs[0],inputs[1],out[0],target[0]))              #for some reason, the last line is not tabbed in
 

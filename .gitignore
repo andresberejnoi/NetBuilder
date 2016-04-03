@@ -1,3 +1,5 @@
 *.pyc
 *.py~
 todo.txt
+# Ignoring csv files for the moment
+*.csv

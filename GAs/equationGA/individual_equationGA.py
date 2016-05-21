@@ -11,8 +11,8 @@ import numpy as np
 #
 class GAError(Exception):
     """The basic template for GA-related exceptions in this file"""
-    def __init__(self):
-        self.msg = "Error occurred"
+    def __init__(self, msg = "Error occured"):
+        self.msg = msg
         
     def __str__(self):
         return self.msg

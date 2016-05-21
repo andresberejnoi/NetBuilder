@@ -9,7 +9,7 @@ from population_equationGA import Population
 def main():
     """"""
     pop = Population()
-    pop.evolve()
+    pop.evolve(iterations=15, mutation_rate=0.20)
     
     
     

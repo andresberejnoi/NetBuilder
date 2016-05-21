@@ -37,6 +37,14 @@ class Population(object):
         self.equations = []             #a list that will contain all the individuals in the population
         self.filename = filename
         
+        # computing how many individuals will be let go, and how many will stay for next round:
+        self.num_surviving = int(survival_rate * size)       # the number of individuals that will survive on each iteration
+        self.left4dead = int(size-self.num_surviving)    # the number of individuals that will not survive
+        
+        # The fitness score of each individual will be stored in a numy array:
+        #self.fitness_list = np.empty((1,self.size), dtype=float)
+        self.fitness_list = [None]
+        
         #self.crossover = crossover_AND
         
         self.rand = np.random.randint       # a shortcut to numpy's random.randint function. This could speed up the process
@@ -46,7 +54,6 @@ class Population(object):
         self.target_outputs = None
         
         self._initialize_population()   #population is initialized with random values
-        
         self._load_targets()
         self._setup()
         
@@ -89,9 +96,6 @@ class Population(object):
                 
                 # Here there should be more questions about the other parameters each function might have
                 self.target_inputs,self.target_outputs = fun(min_x,max_x,num_samples,coefficient,2)
-                
-            
-            
         
         
     def calculate_population_fitness(self):
@@ -99,7 +103,9 @@ class Population(object):
         
         total_fit = 0
         for equation in self.equations:
-            total_fit += equation.calculate_fitness(self.target_inputs,self.target_outputs)
+            indiv_fitness = equation.calculate_fitness(self.target_inputs,self.target_outputs)
+            self.fitness_list.append(indiv_fitness)
+            total_fit += indiv_fitness
         
         # take the average
         avg_fitness = total_fit/self.size
@@ -127,39 +133,39 @@ class Population(object):
         for idx in positions:
             self.equations[idx] = np.bitwise_and(parent1, parent2)
         
-        
+    def crossover():
+        pass
         
     
     def set_new_generation(self):
         """Based on the survival rate parameter, it will remove the worst performing individuals
         and replace them. This would be the work of a crossover function. However, for now, the new 
         individuals will be generated randomly"""
-    
-        #Calculate how many will be replaced:
-        numSurvivors = int(self.size*self.survival_rate)
-        left4Dead = self.size - numSurvivors
         
         # find the positions of worst individuals:
-        positions = self._find_worst_performing(left4Dead)
+        # self.left4dead is an int, it is the number of individuals that will not make it to the new generation
+        positions = self._find_worst_performing()
         
         
         for idx in positions:
             self.equations[idx] = Equation(14,self.rand(1,15))
     
-    def _find_worst_performing(self,num):
+    def _find_worst_performing(self):
         """
         Finds the index of the worst performing members of the population.
         num: how many individuals should be found. It needs a lot of improvement. This is just a temporary implementaion.
         
         return: a list of the index positions of each individual
         """
-        fitnesses = list(self.get_fitnesses(self.equations))
+        #fitnesses = list(self.get_fitnesses(self.equations))
+        fitnesses = self.fitness_list
         positions = []
-        for i in range(num):
+        for i in range(self.left4dead):
             min_val = min(fitnesses)
             pos = fitnesses.index(min_val)
             positions.append(pos)
             fitnesses.pop(pos)
+            
         return positions
         
         '''
@@ -181,7 +187,7 @@ class Population(object):
         '''
   
            
-    def evolve(self):
+    def evolve(self, iterations = 50, mutation_rate = 0.01):
         """
         Puts the functions together.
         This could be done in the driver file instead.
@@ -189,10 +195,10 @@ class Population(object):
         
         #How many generations will there be:
         avg_fit = self.calculate_population_fitness()
-        for i in range(50):
+        for i in range(iterations):
             print("Fitness: ",avg_fit, "Iteration: ",i )
             self.set_new_generation()
-            self.mutation(0.45)                     # I'm setting a really high mutation rate because crossover is not implemented, so this is the only way for the population to change
+            self.mutation(mutation_rate)                     # I'm setting a really high mutation rate because crossover is not implemented, so this is the only way for the population to change
             avg_fit = self.calculate_population_fitness()
             
             

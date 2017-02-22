@@ -2,6 +2,10 @@
 """
     @author: andresberejnoi
 """
+#TODO: During training, if the network gets stuck in a local minima for several epochs,
+# then randomly modify certain weights in the matrix. This might allow the network to get out
+# of that minima and converge 
+
 import numpy as np
 import tools         # this is just a python file where I will put some functions before I decide to include them here directly
 
@@ -347,7 +351,7 @@ class network(object):
         self.last_change = [np.zeros(Mat.shape) for Mat in self.weights]
         
         if batch is True:
-            # if we are using batch training, we create a list that will contained the accumulated gradient change for all the training patterns:
+            # if we are using batch training, we create a list that will contain the accumulated gradient change for all the training patterns:
             self.batch_gradients = [np.zeros(Mat.shape) for Mat in self.last_change]
 
         for i in range(epochs+1):

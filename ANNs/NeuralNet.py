@@ -2,7 +2,12 @@
 """
     @author: andresberejnoi
 """
+#TODO: During training, if the network gets stuck in a local minima for several epochs,
+# then randomly modify certain weights in the matrix. This might allow the network to get out
+# of that minima and converge 
+
 import numpy as np
+import tools         # this is just a python file where I will put some functions before I decide to include them here directly
 
 def sigmoid(x, derivative = False):
     """
@@ -76,7 +81,7 @@ class network(object):
             # Initialize random weights, and create empty matrices to store the previous changes in weight (for momentum):
            
             self.weights = [np.random.normal(loc=0,scale=0.6,size=(topology[i]+1, topology[i+1])) for i in range(self.size)]  
-            self.last_change = [np.zeros( (topology[i]+1 , topology[i+1] ) ) for i in range(self.size)]
+            #self.last_change = [np.zeros( (topology[i]+1 , topology[i+1] ) ) for i in range(self.size)]
             #self.weights = [np.random.normal(loc=0,scale=0.1,size=( topology[i+1], topology[i]+1)) for i in range(self.size)]
             #self.last_change = [np.zeros( (topology[i+1],topology[i]+1) ) for i in range(self.size)]
             
@@ -92,22 +97,29 @@ class network(object):
                 
             '''
         else:                           #when the file is provided:
-            while True:
-                try:
-                    self.weights = np.load(loadfile)
-                    break
-                    #self.size = len(self.weights)
-                except FileNotFoundError:
-                    print("""File '{0}' is was not found.""".format(loadfile))
-                    loadfile = input("Please enter an available file (to cancel type 'break'): ")
-                    if loadfile.lower() == 'break':
-                        raise NetworkError("Could not initialize the network")
+        
+            if '.csv' in loadfile:
+                self.topology, self.weights = tools.read_weights(loadfile)
+                
+            else:
+                while True:
+                    try:
+                        self.weights = np.load(loadfile)
+                        break
+                        #self.size = len(self.weights)
+                    except FileNotFoundError:
+                        print("""File '{0}' is was not found.""".format(loadfile))
+                        loadfile = input("Please enter an available file (to cancel type 'break'): ")
+                        if loadfile.lower() == 'break':
+                            raise NetworkError("Could not initialize the network")
+                self.topology = [(M.shape[0]-1) for M in self.weights]
+                self.topology.append(self.weights[-1].shape[1]) 
             
+            # We set up the other varibales
             self.size = len(self.weights)
             self.learningRate = learningRate
             self.momentum = momentum
-            self.topology = [(M.shape[0]-1) for M in self.weights]
-            self.topology.append(self.weights[-1].shape[1])             
+                        
             
             
         
@@ -166,18 +178,39 @@ class network(object):
     # Functionality of the network
     #
     
-    def save(self, filename):
+    def save(self, filename, transpose=False, keep_bias = False):
         """
         Saves the weights of the network stored in self.weights using numpy 'save' method.
         
-        filename: a string or file object where the information will be saved        
+        filename: a string or file object where the information will be saved 
+        Transpose: boolean; used when saving to a csv file. It tells whether the matrix should be saved in its
+                    current form, or its transpose
         """
-        try:
-            np.save(filename,self.weights)
-            print("Weights were saved successfully")
-        except:
-            print("There was an error saving the weights")
-
+        if '.csv' in filename:      # if the file weights are to be saved in csv format:
+            handler = open(filename, 'wb')       # opening in byte write mode to match with numpy's opening mode
+            np.savetxt(handler,np.array([self.topology]), delimiter=',')        #saves the header for the file         
+            
+            if transpose:
+                for Mat in self.weights:
+                    # iterate through every weight matrix and save it to file
+                    if keep_bias is False:          # when the user does not want to include the bias vector weight into the weights file
+                        Mat = Mat[:-1]              # the last row corresponds to the bias weight vector, so we slice it off
+                    np.savetxt(handler, Mat.transpose(), delimiter=',')
+            else:
+                for Mat in self.weights:
+                    if keep_bias is False:
+                        Mat = Mat[:-1]
+                    np.savetxt(handler, Mat, delimiter=',')
+                    
+            handler.close()
+        else:
+            try:
+                np.save(filename,self.weights)
+                print("Weights were saved successfully")
+            except:
+                print("There was an error saving the weights")
+                
+                
     def feedforward(self,inputs, batch=False):
         """
         Performs the feedforward propagation of the inputs through the layers.
@@ -230,7 +263,7 @@ class network(object):
             
                    
         
-    def backprop(self,inputs,target,batch=False):
+    def backprop(self,inputs,target, batch=False):
         """
         Backpropagation (online)
         inputs: a vector of inputs for the neural network. It corresponds to one training example (in online mode)
@@ -262,17 +295,28 @@ class network(object):
                 gradients = np.outer(self.netOuts[back_index], delta)           # the transpose is necessary to get a matrix of the correct shape. This can be avoided by changing the way the matrix is represented
                 
                 self.Gradients[back_index] = gradients
-                    
-        # Update the weights on every training sample, because this is online training
-        for i in range(self.size):
-            delta_weight = self.learningRate * self.Gradients[i]
-            self.weights[i] -= delta_weight + self.momentum*self.last_change[i]
-            self.last_change[i] = self.Gradients[i]
+        
+        
+        if not batch:
+            # when we want online training, weights are updated on the flight. 
+            # otherwise, we just return the error
+            # Update the weights on every training sample, because this is online training
+            for i in range(self.size):
+                delta_weight = self.learningRate * self.Gradients[i]
+                self.weights[i] -= delta_weight + self.momentum*self.last_change[i]
+                self.last_change[i] = self.Gradients[i]
+        else:
+            # This clause is for batch training.
+            # We will iterate through the cumulative gradients 
+            for k in range(self.size):
+                self.batch_gradients[k] += self.Gradients[k]
+                
+
             
         return error
     
-    
-    def trainEpoch(self,trainingSet):
+        
+    def trainEpoch(self,trainingSet, batch_switch = False):
         """
         Presents every training example to the network once, backpropagating the error
         for each one.
@@ -282,12 +326,20 @@ class network(object):
         epoch_error = 0
         
         for inputs,targets in trainingSet:
-            epoch_error += self.backprop(inputs,targets)
+            epoch_error += self.backprop(inputs,targets, batch_switch)
+        
+        if batch_switch is True:
+            for i in range(self.size):
+                self.batch_gradients[i] -= self.batch_gradients[i]              # we need the values to start at zero for every epoch
+                delta_weight = self.learningRate * self.batch_gradients[i]
+                self.weights[i] -= delta_weight + self.momentum*self.last_change[i]
+                self.last_change[i] = self.batch_gradients[i]
+        
         
         return epoch_error
         
     
-    def train(self,trainingSet,epochs=1000,threshold_error = 1E-10, batch = False):
+    def train(self,trainingSet,epochs=1000,threshold_error = 1E-10, batch=False):
         """
         Trains the network for the specified number of epochs.
         trainingSet: a list of tuples pairing inputs,targets for each training example.
@@ -298,32 +350,19 @@ class network(object):
                             otherwise, it must keep going until the error is lower, or the specified number
                             of epochs has been reached.
         """
-        
-        if not batch:
-            # Online training is performaed
-            for i in range(epochs+1):
-                error = self.trainEpoch(trainingSet)
-                
-                if i % (epochs/100) == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
-                    self.print_stateOfTraining(i,error)
-                if error <= threshold_error:                                        # when the error of the network is less than the threshold, the traning can stop
-                    self.print_stateOfTraining(i,error, finished=True)
-                    break
-        else:
-            # When batch training is required:
-            for i in range(epochs+1):
-                
-                error = "Calculate here"
-                
-                if i % (epochs/100) == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
-                    self.print_stateOfTraining(i,error)
-                if error <= threshold_error:                                        # when the error of the network is less than the threshold, the traning can stop
-                    self.print_stateOfTraining(i,error, finished=True)
-                    break
-                
+        self.last_change = [np.zeros(Mat.shape) for Mat in self.weights]
+        if batch is True:
+            # if we are using batch training, we create a list that will contain the accumulated gradient change for all the training patterns:
+            self.batch_gradients = [np.zeros(Mat.shape) for Mat in self.last_change]
+
+        for i in range(epochs+1):
+            error = self.trainEpoch(trainingSet, batch)
             
-    
-    
+            if i % (epochs/100) == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
+                self.print_stateOfTraining(i,error)
+            if error <= threshold_error:                                        # when the error of the network is less than the threshold, the traning can stop
+                self.print_stateOfTraining(i,error, finished=True)
+                break
     
     # Information printers
     def print_stateOfTraining(self,iterCount,error,finished=False):

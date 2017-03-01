@@ -50,7 +50,8 @@ trainingTargets = [np.array([0]),
         
         
 topology = [2,10,10,1]
-net = network(topology,0.1,0.3)
+net = network(topology,0.1,0.1)
+net.save("recog_number.csv", transpose=True, keep_bias = False)                 # saving a file with the iniitial weights
 #net.outActiv_fun = sigmoid
 
 
@@ -65,6 +66,7 @@ for W in net.weights:
 
 net.train(trainingSet,epochs,tolerance)
 
+
 def test(rep=10):
     '''A small test function'''
     global trainingSet
@@ -78,14 +80,14 @@ def test(rep=10):
             print(net.weights[0])
             print("Gradients:")
             print(net.Gradients[0])
-            print("Previous change:")
-            print(net.last_change[0])
+            #print("Previous change:")
+            #print(net.last_change[0])
             print()
             print(net.weights[1])
             print("Gradients:")
             print(net.Gradients[1])
-            print("Previous Change:")
-            print(net.last_change[1])
+            #print("Previous Change:")
+            #print(net.last_change[1])
             print()
     
             error += net.backprop(I,P)

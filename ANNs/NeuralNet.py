@@ -142,7 +142,29 @@ class network(object):
     
     __repr__ = __str__
         
-        
+    def get_complexity(self):
+        """
+        Returns the number of features or synapses present in the network.
+        """
+        synapses = 0
+        for mat in self.weights:
+            synapses += mat.size
+        return synapses
+
+    def get_num_nodes(self):
+        """Returns the number of nodes in the network (includes input and output nodes)"""
+        return sum(self.topology)
+
+    def get_connection_layer(self, idx):
+        """
+        idx: int; the index corresponding to a layer in self.weights.
+        returns: The connection weights for the layer requested (self.weights[idx])
+        """
+        try:
+            return self.weights[idx]
+        except:
+            print("""Could not find layer {0} in network.\nNetwork has {1} layers.""".format(idx, self.size))
+    
     #
     # Section below is for setters
     #
@@ -208,7 +230,7 @@ class network(object):
                 np.save(filename,self.weights)
                 print("Weights were saved successfully")
             except:
-                print("There was an error saving the weights")
+                print("There was an error saving the weights. Try using .csv format.")
                 
                 
     def feedforward(self,inputs, batch=False):

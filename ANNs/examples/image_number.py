@@ -4,7 +4,7 @@ Created on Fri Feb  5 16:32:41 2016
 @author: andresberejnoi
 """
 import numpy as np
-from NeuralNet import network
+from ..NeuralNet import network
 
 
 shapes = {0: np.array([ [-0.5,-0.5,0.5,0.5,-0.5,-0.5],

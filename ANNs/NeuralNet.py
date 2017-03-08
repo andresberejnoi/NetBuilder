@@ -7,7 +7,80 @@
 # of that minima and converge 
 
 import numpy as np
-import tools         # this is a python file where I will put some functions before I decide to include them here directly
+#import tools         # this is a python file where I will put some functions before I decide to include them here directly
+
+
+def read_weights(weights_file, is_transpose = True, add_bias= True):
+        """
+        Loads weights from a text file.
+        It needs to be organized better. 
+        """
+        from itertools import islice       
+        handler = open(weights_file, 'rb')                  # opening file in binary read mode
+
+        info_line = np.genfromtxt(islice(handler,0,1), delimiter=',')           # the info line is read and stored as an ndarray, but it has trailing 'nan' values from the trailing commas
+        topology = info_line[np.logical_not(np.isnan(info_line) ) ]             # removes the trailing commas
+        topology = topology.astype(int)         # converting the array values into integers 
+        
+        #Now we read the weights based on the parameter 'is_transpose'
+        weights = []
+        if is_transpose is False:
+            # if is_transpose is false, then we read each matrix as rows=nodes in current layer,
+            # and columns = nodes in following layer. If is_transpose is true, then the opposite is done
+            for i in range(len(topology)-1):
+                read_until_row = int(topology[i])
+                M = np.genfromtxt(islice(handler, read_until_row), delimiter=',', usecols = range(int(topology[i+1]) ) )
+                M = np.atleast_2d(M)
+                weights.append(M)
+        else:
+            # we go here when is_transpose is true
+            for i in range(len(topology) - 1):
+                read_until_row = int(topology[i+1])                 # Determines until what row the file should be sliced
+                M = np.genfromtxt(islice(handler, read_until_row), delimiter=',', usecols = range(int(topology[i])))
+                M = np.atleast_2d(M)            # this ensures that the resulting vector will always be a 2D matrix (if it is a single row, then the shape will be something like (1,20) for example.)
+                weights.append(M)                
+                # The network loads matrices as (nodes in current layer X nodes in next layer),
+                # therefore, after reading the file, we need to store matrices as their transpose forms:
+                
+            weights = [Mat.transpose() for Mat in weights]
+        
+        if add_bias is True:
+            '''Add bias'''
+            for k in range(len(weights)):
+                bias_row = np.random.normal(scale=0.1, size=(1,topology[k+1]))          # creates a row of random values and the correct size
+                weights[k] = np.vstack([weights[k], bias_row])                             # appends a new row to the weights file
+                
+        handler.close()                 #closing file
+        return topology, weights
+
+def save_outputs(output_file,Patterns, net):
+    """
+    It takes patterns and performs feedforward passes on it, and the output is saved to a file.
+    
+    output_file: a string; this is how the output file will be named. It should be a .csv file to be
+                compatible with the network class at the moment.
+    patterns: a list of patterns, or a str of the filename where the patterns should be read from
+    
+    """
+    handler = open(output_file, 'wb')
+    if type(Patterns) == str:
+        # if the value provided for patterns is a str, the function will attempt to open it as a 
+        pattern_file = open(Patterns, 'r')             # if the file does not exit, the exception FileNotFoundError will be raised
+        
+        for line in pattern_file:
+            pattern = [float(num) for num in line.rstrip('\n').split(',')]
+            out = np.atleast_2d(net.feedforward(pattern))          # computes the output
+            np.savetxt(handler, out, delimiter=',')     # output is saved to file
+        pattern_file.close()
+    else:
+        
+        for pattern in Patterns:
+            out = np.atleast_2d(net.feedforward(pattern))
+            print(out.shape)
+            np.savetxt(handler, out, delimiter=',')
+    
+    handler.close()
+
 
 def sigmoid(x, derivative = False):
     """
@@ -80,27 +153,12 @@ class network(object):
                     
             # Initialize random weights, and create empty matrices to store the previous changes in weight (for momentum):
            
-            self.weights = [np.random.normal(loc=0,scale=0.6,size=(topology[i]+1, topology[i+1])) for i in range(self.size)]  
-            #self.last_change = [np.zeros( (topology[i]+1 , topology[i+1] ) ) for i in range(self.size)]
-            #self.weights = [np.random.normal(loc=0,scale=0.1,size=( topology[i+1], topology[i]+1)) for i in range(self.size)]
-            #self.last_change = [np.zeros( (topology[i+1],topology[i]+1) ) for i in range(self.size)]
-            
-            
-            '''
-            for i in range(len(topology)-1):
-                #Every layer has a bias node, so each matrix will have extra weights correspoding to the connections from that bias node
-                #The rows of the matrix correspond to neurons in next layer, while columns correspond to nodes in previous layer.
-                #i.e. network [5,10,1] will have 2 weight matrices, one from input to hidden, then from hidden to output and 
-                # matrix shapes will be: input-to-hidden -> 10x6, hidden-to-out -> 1x11; the +1 on the columns is the result of having a bias node on that layer
-                self.weights.append(np.random.normal(loc=0,scale=0.1,size=(topology[i+1],topology[i]+1)))           #weight values are initialized randomly, between -0.1 and 0.1
-                self.last_change.append(np.zeros( (topology[i+1],topology[i]+1) ))                                  #creating empty matrices to keep track of previous gradients. this will be used along with the momentum term during backpropagation
-                
-            '''
-        else:                           #when the file is provided:
-        
+            self.weights = [np.random.normal(loc=0,scale=0.6,size=(topology[i]+1, topology[i+1])) for i in range(self.size)]              
+
+        else:
+            #when the file is provided:
             if '.csv' in loadfile:
-                self.topology, self.weights = tools.read_weights(loadfile)
-                
+                self.topology, self.weights = read_weights(loadfile)
             else:
                 while True:
                     try:
@@ -119,10 +177,8 @@ class network(object):
             self.size = len(self.weights)
             self.learningRate = learningRate
             self.momentum = momentum
-                        
-            
-            
-        
+
+        #-----------------------------------------------------
         # Initialize activation functions.
         self.outActiv_fun = tanh
         self.hiddenActiv_fun = tanh
@@ -131,7 +187,7 @@ class network(object):
     # Initializer helpers
     
     
-    #  
+    #--------------------------------------------------------------------------
     # Overloading Operators:
     #
     def __str__(self):
@@ -141,7 +197,11 @@ class network(object):
         return "Network: {0}".format(self.topology)
     
     __repr__ = __str__
-        
+
+
+    #---------------------------------------------------------------------------
+    # Getters
+    #
     def get_complexity(self):
         """
         Returns the number of features or synapses present in the network.
@@ -165,7 +225,7 @@ class network(object):
         except:
             print("""Could not find layer {0} in network.\nNetwork has {1} layers.""".format(idx, self.size))
     
-    #
+    #--------------------------------------------------------------------------
     # Section below is for setters
     #
     def set_hiddenactivation_fun(self,func='tanh'):

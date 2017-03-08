@@ -5,6 +5,7 @@ Created on Fri Feb  5 16:32:41 2016
 """
 import numpy as np
 from ..NeuralNet import network
+from trainingShapes import shapes2
 
 
 shapes = {0: np.array([ [-0.5,-0.5,0.5,0.5,-0.5,-0.5],
@@ -92,54 +93,55 @@ class number(object):
         
         
 
-#test script below
-from trainingShapes import shapes2
-
-inputs1 = [shape.flatten() for shape in shapes.values()]            #creates a list of the values in the dictionary
-inputs2 = [shape.flatten() for shape in shapes2.values()]
-
-inputs = inputs1 + inputs2
-#inputs = inputs1
-
-'''
-targets = [np.array([1,0,0,0,0,0,0,0,0,0]),             #we want a zero
-           np.array([0,1,0,0,0,0,0,0,0,0]),             #we want a 1
-           np.array([0,0,1,0,0,0,0,0,0,0]),
-           np.array([0,0,0,1,0,0,0,0,0,0]),
-           np.array([0,0,0,0,1,0,0,0,0,0]),
-           np.array([0,0,0,0,0,1,0,0,0,0]),
-           np.array([0,0,0,0,0,0,1,0,0,0]),
-           np.array([0,0,0,0,0,0,0,1,0,0]),
-           np.array([0,0,0,0,0,0,0,0,1,0]),
-           np.array([0,0,0,0,0,0,0,0,0,1])]
-'''
-
-
-targets = [np.array([0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5]),             #we want a zero
-           np.array([-0.5,0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5]),             #we want a 1
-           np.array([-0.5,-0.5,0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5]),
-           np.array([-0.5,-0.5,-0.5,0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5]),
-           np.array([-0.5,-0.5,-0.5,-0.5,0.5,-0.5,-0.5,-0.5,-0.5,-0.5]),
-           np.array([-0.5,-0.5,-0.5,-0.5,-0.5,0.5,-0.5,-0.5,-0.5,-0.5]),
-           np.array([-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,0.5,-0.5,-0.5,-0.5]),
-           np.array([-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,0.5,-0.5,-0.5]),
-           np.array([-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,0.5,-0.5]),
-           np.array([-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,0.5])]
-
-
-trainingSet = list(zip(inputs,targets+targets))
-#trainingSet = list(zip(inputs,targets))
-
-topology = [36,50,50,10]
-net = network(topology,0.01,0.01)
-#net.save("recog_number_weights.csv", transpose=True, keep_bias=False)
-
-#random_out = net.feedforward(inputs[1])
-
-epochs = 10000
-tolerance = 1E-5
-
-net.train(trainingSet,epochs,tolerance)
-#print()
-#print(random_out)
-
+def main():
+    inputs1 = [shape.flatten() for shape in shapes.values()]            #creates a list of the values in the dictionary
+    inputs2 = [shape.flatten() for shape in shapes2.values()]
+    
+    inputs = inputs1 + inputs2
+    #inputs = inputs1
+    
+    '''
+    targets = [np.array([1,0,0,0,0,0,0,0,0,0]),             #we want a zero
+               np.array([0,1,0,0,0,0,0,0,0,0]),             #we want a 1
+               np.array([0,0,1,0,0,0,0,0,0,0]),
+               np.array([0,0,0,1,0,0,0,0,0,0]),
+               np.array([0,0,0,0,1,0,0,0,0,0]),
+               np.array([0,0,0,0,0,1,0,0,0,0]),
+               np.array([0,0,0,0,0,0,1,0,0,0]),
+               np.array([0,0,0,0,0,0,0,1,0,0]),
+               np.array([0,0,0,0,0,0,0,0,1,0]),
+               np.array([0,0,0,0,0,0,0,0,0,1])]
+    '''
+    
+    
+    targets = [np.array([0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5]),             #we want a zero
+               np.array([-0.5,0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5]),             #we want a 1
+               np.array([-0.5,-0.5,0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5]),
+               np.array([-0.5,-0.5,-0.5,0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5]),
+               np.array([-0.5,-0.5,-0.5,-0.5,0.5,-0.5,-0.5,-0.5,-0.5,-0.5]),
+               np.array([-0.5,-0.5,-0.5,-0.5,-0.5,0.5,-0.5,-0.5,-0.5,-0.5]),
+               np.array([-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,0.5,-0.5,-0.5,-0.5]),
+               np.array([-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,0.5,-0.5,-0.5]),
+               np.array([-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,0.5,-0.5]),
+               np.array([-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,0.5])]
+    
+    
+    trainingSet = list(zip(inputs,targets+targets))
+    #trainingSet = list(zip(inputs,targets))
+    
+    topology = [36,50,50,10]
+    net = network(topology,0.01,0.01)
+    #net.save("recog_number_weights.csv", transpose=True, keep_bias=False)
+    
+    #random_out = net.feedforward(inputs[1])
+    
+    epochs = 10000
+    tolerance = 1E-5
+    
+    net.train(trainingSet,epochs,tolerance)
+    #print()
+    #print(random_out)
+    
+if __name__=='__main__':
+    main()
+    

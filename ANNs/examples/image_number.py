@@ -132,7 +132,7 @@ trainingSet = list(zip(inputs,targets+targets))
 
 topology = [36,50,50,10]
 net = network(topology,0.01,0.01)
-net.save("recog_number_weights.csv", transpose=True, keep_bias=False)
+#net.save("recog_number_weights.csv", transpose=True, keep_bias=False)
 
 #random_out = net.feedforward(inputs[1])
 

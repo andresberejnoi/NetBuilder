@@ -7,7 +7,7 @@
 # of that minima and converge 
 
 import numpy as np
-import tools         # this is just a python file where I will put some functions before I decide to include them here directly
+import tools         # this is a python file where I will put some functions before I decide to include them here directly
 
 def sigmoid(x, derivative = False):
     """

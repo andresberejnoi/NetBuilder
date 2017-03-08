@@ -1,4 +1,4 @@
-#          Neural Network Builder
+#          Machine Learning
 This repository contains code related to machine learning. Currently, the active
 project is in the folder ANNs, where the neural network class resides.
 The neural network class is in NeuralNet.py

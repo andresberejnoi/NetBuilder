@@ -4,7 +4,7 @@ Created on Fri Feb  5 16:32:41 2016
 @author: andresberejnoi
 """
 import numpy as np
-from ..NeuralNet import network
+from ..NeuralNet import Network
 from trainingShapes import shapes2
 
 
@@ -130,7 +130,7 @@ def main():
     #trainingSet = list(zip(inputs,targets))
     
     topology = [36,50,50,10]
-    net = network(topology,0.01,0.01)
+    net = Network(topology,0.01,0.01)
     #net.save("recog_number_weights.csv", transpose=True, keep_bias=False)
     
     #random_out = net.feedforward(inputs[1])

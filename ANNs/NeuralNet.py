@@ -120,7 +120,7 @@ class NetworkError(Exception):
         
 #----------------------------------------------------------------------------------------------
 
-class network(object):
+class Network(object):
     """
     Implements the methods and attributes of an Artificial Neural Network (Multilayer).
     The network implemented is a feedforward one, with backpropagation as the training algorithm.

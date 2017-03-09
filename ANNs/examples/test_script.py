@@ -5,7 +5,7 @@ Created on Fri Feb  5 17:25:57 2016
 @author: andresberejnoi
 """
 import numpy as np
-from NeuralNet import network, sigmoid
+from NeuralNet import Network, sigmoid
 
 
         
@@ -50,7 +50,7 @@ trainingTargets = [np.array([0]),
         
         
 topology = [2,10,10,1]
-net = network(topology,0.1,0.1)
+net = Network(topology,0.1,0.1)
 net.save("recog_number.csv", transpose=True, keep_bias = False)                 # saving a file with the iniitial weights
 #net.outActiv_fun = sigmoid
 
@@ -71,7 +71,7 @@ def test(rep=10):
     '''A small test function'''
     global trainingSet
     topology = [2,5,5,1]
-    net = network(topology)
+    net = Network(topology)
     net.Gradients = [None,None]
     for i in range(rep+1):
         error=0.0

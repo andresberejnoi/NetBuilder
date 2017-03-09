@@ -1,6 +1,13 @@
 *.pyc
 *.py~
-todo.txt
 # Ignoring csv files for the moment
 *.csv
 *.swp
+*.txt
+#Ignoring todo file:
+todo.txt
+#ignoring package folders
+build
+dist
+#ignoring files from setup.py
+MANIFEST

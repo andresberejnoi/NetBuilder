@@ -361,5 +361,5 @@ if __name__=='__main__':
     # Run test functions
     #test1()
     #test_AND()
-    #test_XOR()
-    sample_network()
+    test_XOR()
+    #sample_network()

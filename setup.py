@@ -13,10 +13,10 @@ With this class you can create deep neural networks very quickly (see some of th
 """
 setup(name='NetBuilder',
       version='0.1.0',
-      packages=['ANNs'],
+      packages=['NetBuilder'],
       author='Andres Berejnoi',
       author_email='andresberejnoi@gmail.com',
-      url='https://github.com/andresberejnoi/machineLearning',
+      url='https://github.com/andresberejnoi/NetBuilder',
       license='MIT',
       long_description=desc,
       keywords=['Neural Network', 'machine learning', 'AI', 'artificial intelligence']

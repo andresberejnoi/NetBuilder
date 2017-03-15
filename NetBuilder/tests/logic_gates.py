@@ -1,4 +1,4 @@
-from ..NeuralNet import Network
+from ..NeuralNet import Network, save_outputs
 
 
 def test_AND():

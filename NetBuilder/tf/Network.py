@@ -118,11 +118,7 @@ def sample_network():
             print('='*80,"\nTEST:")
             print('OUTPUT\tEXPECTED')
             for i in range(num_in_samp):
-                print(output[i],y[i])
-if __name__=='__main__':
-    #sample_network()
-    pass
-    
+                print(output[i],y[i])    
 
 class Network(object):
     '''A network builder that uses tensorflow as a backend.'''
@@ -180,44 +176,44 @@ class Network(object):
                 
                 #Setup the operations
                 oper = self.actFunc(tf.add(tf.matmul(op_input,layer),layer_bias),name=op_name)
-                self.ops.append(oper)
-                
+                self.ops.append(oper)                
+
                 #create the graph object
                 #self.graph = tf.Graph()
             self.init_vars = tf.global_variables_initializer()
             
-    
     def feedforward(self, input_data):
         """
         Runs a TensorFlow session with with the graph in self.graph.
         input_data: ndarray; a matrix with the data that will be fed into the network        
         """
-        
         feed_dict = {self.input_data:input_data}
         with tf.Session(graph=self.graph) as sess:
             sess.run(self.init_vars)
             output = sess.run(self.ops[-1],feed_dict=feed_dict)
-        
         return output
+        
     def _compute_error(self,expected_out,output):
         """
         This is a stand-alone function so that the code is more portable.        
         """
         with self.graph.as_default():
             error = tf.Variable(tf.subtract(expected_out,output))
-            mse = tf.reduce_mean(error)
-        
+            mse = tf.abs(tf.reduce_mean(error))
         return mse
         
-    def train(self, expected_out, actual_out, error_thresh=0.0001,epochs_to_run=5000):
+    def loss_function(self,expected_out,output):
+        error = self._compute_error(expected_out,output)
+        return error
+        
+    def train(self, expected_out, actual_out, error_thresh=0.0001,epochs_to_run=5000,learning_rate=0.001):
         #First compute the error of the network
         with tf.Session(graph=self.graph) as sess:
             feed_dict = {self.output_data:actual_out}
             #error = tf.Variable(tf.subtract(expected_out,actual_out))
             #mse = tf.reduce_mean(error)
-            mse = self._compute_error(expected_out,actual_out)
-            to_train = tf.train.GradientDescentOptimizer(0.01).minimize(mse)
-            
+            mse = self.loss_function(expected_out , self.output_data)
+            to_train = tf.train.GradientDescentOptimizer(learning_rate).minimize(mse)
             sess.run(tf.global_variables_initializer())#,feed_dict=feed_dict)         #variables in _comput_error() will be initialized
             
             error = 1. 
@@ -227,17 +223,19 @@ class Network(object):
                error, _ = sess.run([mse, to_train])
                
                #Print information during training
+               print('epoch:', epoch,'error:',error)
                if epoch%(epochs_to_run/10)==0:
                    print('epoch:',epoch,'error:',error)
                    
             print('Finished:')
             print('epoch:', epoch, 'mse:', error)
-
-
+            
+    def _train(self, actual_out):
+        pass
 
 
 def test1():
-    num_in_samp = 1
+    num_in_samp = 10
     num_in_features = 5
     
     num_out = num_in_samp
@@ -277,15 +275,18 @@ def test_AND():
     error_thresh = 0.001
     max_epochs = 10000
     
-    input_train = np.array([[-1.,-1.],
-                            [-1.,1.],
-                            [1.,-1.],
-                            [1.,1.]])
+    #Set the values of True and False
+    T = 1.
+    F = -1.
+    input_train = np.array([[F,F],
+                            [F,T],
+                            [T,F],
+                            [T,T]])
                             
-    output_train = np.array([[-1.],
-                             [-1.],
-                             [-1.],
-                             [1.]])
+    output_train = np.array([[F],
+                             [F],
+                             [F],
+                             [T]])
                              
     #creating the network
     topology = [num_in_features,5,5,num_out_features]
@@ -307,7 +308,6 @@ def test_AND():
     print('Output:\n','Actual','\tExpected')
     for i in range(num_in_samp):
         print(test_out[i],output_train[i])
-    
 
 def test_XOR():
     test_name = 'XOR Test Began:'
@@ -323,15 +323,18 @@ def test_XOR():
     error_thresh = 0.001
     max_epochs = 10000
     
-    input_train = np.array([[-1.,-1.],
-                            [-1.,1.],
-                            [1.,-1.],
-                            [1.,1.]])
+    T = 1.
+    F = -1.
+    
+    input_train = np.array([[F,F],
+                            [F,T],
+                            [T,F],
+                            [T,T]])
                             
-    output_train = np.array([[-1.],
-                             [1.],
-                             [1.],
-                             [-1.]])
+    output_train = np.array([[F],
+                             [T],
+                             [T],
+                             [F]])
                              
     #creating the network
     topology = [num_in_features,5,5,num_out_features]
@@ -353,8 +356,6 @@ def test_XOR():
     print('Output:\n','Actual','\tExpected')
     for i in range(num_in_samp):
         print(test_out[i],output_train[i])
-    
-    
     
     
 if __name__=='__main__':

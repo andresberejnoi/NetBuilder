@@ -259,7 +259,9 @@ class Network(object):
     #
     # Functionality of the network
     #
-    
+    def register_activation_function(self, funcName,funcObject):
+            """Adds an activation function to the dictionary of activation functions"""
+            self.functions[funcName] = funcObject
     def save(self, filename, transpose=False, keep_bias = False):
         """
         Saves the weights of the network stored in self.weights using numpy 'save' method.

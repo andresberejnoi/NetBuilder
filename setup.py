@@ -12,15 +12,17 @@ It uses numpy arrays as the primary data structure for the weight matrices.
 With this class you can create deep neural networks very quickly (see some of the example files to see how to use it).
 """
 desc = """Allows to create and train fully connected feedforward deep neural networks in a simple way"""
+with open('VERSION', 'r') as ver:
+    version = ver.read().rstrip()
 setup(name='netbuilder',
-      version='0.1.0',
+      version=version,
       packages=['NetBuilder'],
       author='Andres Berejnoi',
       author_email='andresberejnoi@gmail.com',
       url='https://github.com/andresberejnoi/NetBuilder',
       license='MIT',
       description=desc,
-      long_description=desc,
+      long_description=long_desc,
       keywords=['Neural Network', 'machine learning', 'AI', 'artificial intelligence'],
       install_requires=['numpy>=1']
       )

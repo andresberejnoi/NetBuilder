@@ -117,7 +117,7 @@ def simple_loss(target,actual):
     try:
         assert(target.shape==actual.shape)
     except AssertionError:
-        print("""Shape of target array '{0} does not match shape of actual '{1}'""".format(target.shape,actual.shape))
+        print("""Shape of target array '{0}' does not match shape of actual '{1}'""".format(target.shape,actual.shape))
     #compute the error and return it    
     error = 0.5 * np.sum((target-actual)**2, axis=1, keepdims=True)
     return error
@@ -172,7 +172,17 @@ class Network(object):
                     
             # Initialize random weights, and create empty matrices to store the previous changes in weight (for momentum):
            
-            self.weights = [np.random.normal(loc=0,scale=0.6,size=(topology[i]+1, topology[i+1])) for i in range(self.size)]              
+            #self.weights = [np.random.normal(loc=0,scale=0.6,size=(topology[i]+1, topology[i+1])) for i in range(self.size)]              
+            self.weights = [np.random.normal(loc=0,
+                                             scale=0.6,
+                                             size=(topology[i]+1, topology[i+1]+1)) for i in range(self.size-1)] #we are only generating matrices for inital and hidden layers
+            #Create matrix for output layer
+            f_idx = self.size-1     #use this index for the final layer matrix below
+            self.weights.append(np.random.normal(loc=0,
+                                                 scale=0.6,
+                                                 size=(topology[f_idx]+1,topology[f_idx+1])
+                                                 )
+                                )
 
         else:
             #when the file is provided:
@@ -185,7 +195,7 @@ class Network(object):
                         break
                         #self.size = len(self.weights)
                     except FileNotFoundError:
-                        print("""File '{0}' is was not found.""".format(loadfile))
+                        print("""File '{0}' was not found.""".format(loadfile))
                         loadfile = input("Please enter an available file (to cancel type 'break'): ")
                         if loadfile.lower() == 'break':
                             raise NetworkError("Could not initialize the network")
@@ -340,7 +350,7 @@ class Network(object):
             #otherwise, we use the activation for the hidden layers
             else:
                 I = self.hiddenActiv_fun(I)
-                I = np.concatenate((I,np.ones((I.shape[0],1))), axis=1)
+                #I = np.concatenate((I,np.ones((I.shape[0],1))), axis=1)
                 self.netOuts.append(I)
         
         self.out = I
@@ -438,8 +448,8 @@ class Network(object):
         output = self.feedforward(input_samples)
         
         #compute error
-        error = error_func(target=target_outputs,
-                           actual=output)
+        error = np.sum(error_func(target=target_outputs,
+                           actual=output))
         #error = self._compute_error(expected_out=target_outputs,
         #                            actual_out=output,
         #                            error_func=error_func)
@@ -450,25 +460,40 @@ class Network(object):
         
         #Compute gradients and deltas
         for i in range(self.size):
-            back_index =self.size-1 -i                  # This will be used for the items to be accessed backwards            
+            back_index =self.size-1 -i                  # This will be used for the items to be accessed backwards  
+            #print("BackProp step:",i,'back_index:',back_index)
             if i!=0:
                 # The calculation for the hidden deltas is slightly different than for the output neurons
-                W = self.weights[back_index+1]                
-                delta = np.dot(W,delta)[:-1] * self.hiddenActiv_fun(self.netIns[back_index], derivative=True)              #we slice off the delta value corresponding to the bias node
+                W = self.weights[back_index+1]
+                #print('W.shape:',W.shape,'delta.shape:',delta.shape,'dotPro.shape:',np.dot(W,delta).shape)                
+                delta = np.dot(W,delta) * self.hiddenActiv_fun(self.netIns[back_index], derivative=True).T              #we slice off the delta value corresponding to the bias node
+                #print('new delta shape:',delta.shape)
                 #delta = np.dot(delta, W) * self.hiddenActiv_fun(self.netOuts[back_index], derivative=True)
-                gradients = np.outer(self.netOuts[back_index], delta)           # the transpose is necessary to get a matrix of the correct shape. This can be avoided by changing the way the matrix is represented
+                #gradients = np.outer(self.netOuts[back_index], delta)           # the transpose is necessary to get a matrix of the correct shape. This can be avoided by changing the way the matrix is represented
+                gradients = np.dot(delta,self.netOuts[back_index]).T
+                
+                #print('netOuts[back_idx] shape:',self.netOuts[back_index].shape)
+                #print('gradients shape:',gradients.shape,'should be:',self.weights[back_index].shape)
                 
                 self.Gradients[back_index] = gradients
+                
+                #print('='*80,'\n')
             else:
                 # First, we calculate the delta for the output layer by taking the partial derivatives of the error function and more
                 delta = ( (output-target_outputs) * self.outActiv_fun(self.netIns[back_index], derivative=True) ).T
-                print(delta)
-                print(delta.shape)
-                gradients = np.outer(self.netOuts[back_index], delta)
+                
+                #print(delta)
+                #print('delta shape:',delta.shape)
+                gradients = np.dot(delta,self.netOuts[back_index]).T
+                #print('netOuts[back_idx] shape:',self.netOuts[back_index].shape)
+                #print('gradients shape:',gradients.shape,'should be:',self.weights[back_index].shape)
                 self.Gradients[back_index] = gradients
+                
+                #print('='*80,'\n')
         
         # Update weights using the computed gradients
         for k in range(self.size):
+            #print('batch shape:',self.batch_gradients[k].shape,'gradients shape:',self.Gradients[k].shape)
             self.batch_gradients[k] += self.Gradients[k]
             delta_weight = self.learningRate * self.batch_gradients[i]
             self.weights[i] -= delta_weight + self.momentum*self.last_change[i]
@@ -601,12 +626,12 @@ class Network(object):
                             of epochs has been reached.
         """
         self.last_change = [np.zeros(Mat.shape) for Mat in self.weights]
-        if batch is True:
+        if batch_mode is True:
             # if we are using batch training, we create a list that will contain the accumulated gradient change for all the training patterns:
             self.batch_gradients = [np.zeros(Mat.shape) for Mat in self.last_change]
 
         for i in range(epochs+1):
-            error = self.trainEpoch(trainingSet, batch)
+            error = self.trainEpoch(trainingSet, batch_mode)
             
             if i % (epochs/100) == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
                 self.print_training_state(i,error)
@@ -634,16 +659,51 @@ def random_training_set():
     numOut = 3
     #create random inputs and outputs
     np.random.seed(50)
-    input_set = np.random.rand(10,numIn)   #1000 samples where each sample has numIn features
-    target_set = np.random.rand(10,numOut)   
+    input_set = np.random.rand(1000,numIn)   #1000 samples where each sample has numIn features
+    target_set = np.random.rand(1000,numOut)   
     
-    net = Network(topology=[numIn,5,numOut])
+    net = Network(topology=[numIn,3,numOut])
     net.train(input_set=input_set,
               target_set=target_set,
-              batch_size=0)
+              batch_size=0,
+              epochs=10000)
+    
+def test_AND():
+    
+    #Define input and output layer neurans
+    numIn = 2
+    numOut = 1
+    
+    num_samples = 4
+    
+    #Create training sets
+    T,F = 1.,-1.
+    input_set = np.array([[F,F],
+                          [F,T],
+                          [T,F],
+                          [T,T]])
+    
+    target_set = np.array([[F],
+                           [F],
+                           [F],
+                           [T]])
+
+    
+    
+    net = Network(topology=[numIn,5,5,numOut])
+    net.train(input_set=input_set,
+              target_set=target_set,
+              batch_size=0,
+              epochs=1000)
+    
+    
+    test_out = net.feedforward(input_set)
+    print('TEST OUTPUT:')
+    print(test_out)
     
 if __name__=='__main__':
-    random_training_set()
+    #random_training_set()
+    test_AND()
 
 
 

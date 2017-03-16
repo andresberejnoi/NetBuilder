@@ -103,6 +103,25 @@ def tanh(x, derivative=False):
         #return 1.0 - x**2
     else:
         return np.tanh(x)
+    
+def simple_loss(target,actual):
+    """ 
+    target: numpy array with values we want the network to approximate
+    actual: numpy array (same shape as target); the output of the network after feedforward
+    
+    A simple loss function. It computes the difference between target and actual and raises the value
+    to the power of 2, and everything is divided by 2. The computed value is the error.
+    
+    return: error
+    """
+    try:
+        assert(target.shape==actual.shape)
+    except AssertionError:
+        print("""Shape of target array '{0} does not match shape of actual '{1}'""".format(target.shape,actual.shape))
+    #compute the error and return it    
+    error = 0.5 * np.sum((target-actual)**2, axis=1, keepdims=True)
+    return error
+    
 #---------------------------------------------------------------------------------------------
 class NetworkError(Exception):
     '''
@@ -294,11 +313,10 @@ class Network(object):
                 print("There was an error saving the weights. Try using .csv format.")
                 
                 
-    def feedforward(self,inputs, batch=False):
+    def feedforward(self,inputs):
         """
         Performs the feedforward propagation of the inputs through the layers.
-        inputs: a vector of inputs for the first layer
-        batch: a boolean value to decide whether to treat the input as batch or online training. Batch not implemented yet
+        inputs: numpy array; inputs to the first layer
         """
         # These two lists will contain the inputs and the outputs for each layer, respectively
         self.netIns = []                                                        
@@ -344,7 +362,7 @@ class Network(object):
             
                    
         
-    def backprop(self,inputs,target, batch=False):
+    def backprop_old(self,inputs,target, batch=False):
         """
         Backpropagation (online)
         inputs: a vector of inputs for the neural network. It corresponds to one training example (in online mode)
@@ -395,9 +413,70 @@ class Network(object):
 
             
         return error
+ 
+    
+    def _compute_error(self,expected_out,actual_out,error_func):
+        """
+        Computes the error for the network output.
+        expected_out: numpy array with shape [batch_size (or number of samples) x number of output features]; 
+                        This array should contain the target values that we want the network to produce once trained.
+        actual_out: numpy array with shape equal to expected_out
+        error_func: a function to compute the error
+        """
+        error = error_func(expected_out,actual_out)
+        return error
+    
+    def backprop(self, input_samples,target_outputs, batch_mode=True,error_func=simple_loss):
+        """
+        Backpropagation
+        input_samples: numpy array of all samples in a batch
+        target_outputs: numpy array of matching targets for each sample
+        batch_mode: boolean flag. Indicates whether to use batch or online training.
+        error_func: a function to compute the error
+        """
+        #compute network output:
+        output = self.feedforward(input_samples)
+        
+        #compute error
+        error = error_func(target=target_outputs,
+                           actual=output)
+        #error = self._compute_error(expected_out=target_outputs,
+        #                            actual_out=output,
+        #                            error_func=error_func)
+        
+        #Define placeholder variables
+        delta = None
+        gradients = None
+        
+        #Compute gradients and deltas
+        for i in range(self.size):
+            back_index =self.size-1 -i                  # This will be used for the items to be accessed backwards            
+            if i!=0:
+                # The calculation for the hidden deltas is slightly different than for the output neurons
+                W = self.weights[back_index+1]                
+                delta = np.dot(W,delta)[:-1] * self.hiddenActiv_fun(self.netIns[back_index], derivative=True)              #we slice off the delta value corresponding to the bias node
+                #delta = np.dot(delta, W) * self.hiddenActiv_fun(self.netOuts[back_index], derivative=True)
+                gradients = np.outer(self.netOuts[back_index], delta)           # the transpose is necessary to get a matrix of the correct shape. This can be avoided by changing the way the matrix is represented
+                
+                self.Gradients[back_index] = gradients
+            else:
+                # First, we calculate the delta for the output layer by taking the partial derivatives of the error function and more
+                delta = (output-target_outputs) * self.outActiv_fun(self.netIns[back_index], derivative=True)
+                gradients = np.outer(self.netOuts[back_index], delta)
+                self.Gradients[back_index] = gradients
+        
+        # Update weights using the computed gradients
+        for k in range(self.size):
+            self.batch_gradients[k] += self.Gradients[k]
+            delta_weight = self.learningRate * self.batch_gradients[i]
+            self.weights[i] -= delta_weight + self.momentum*self.last_change[i]
+            self.last_change[i] = self.batch_gradients[i]
+        
+        return error
+        
     
         
-    def trainEpoch(self,trainingSet, batch_switch = False):
+    def TrainEpochOnline(self,input_set,target_set):
         """
         Presents every training example to the network once, backpropagating the error
         for each one.
@@ -406,21 +485,108 @@ class Network(object):
         """
         epoch_error = 0
         
-        for inputs,targets in trainingSet:
-            epoch_error += self.backprop(inputs,targets, batch_switch)
-        
-        if batch_switch is True:
-            for i in range(self.size):
-                self.batch_gradients[i] -= self.batch_gradients[i]              # we need the values to start at zero for every epoch
-                delta_weight = self.learningRate * self.batch_gradients[i]
-                self.weights[i] -= delta_weight + self.momentum*self.last_change[i]
-                self.last_change[i] = self.batch_gradients[i]
-        
-        
+        for i in range(len(input_set)):
+            epoch_error += self.backprop_old(input_set,target_set)
+                
         return epoch_error
         
+    def TrainEpochBatch(self,input_set,output_set):
+        """
+        Trains the network in batches.
+        input_set: numpy array of shape [batch_size x features per sample]
+        output_set: numpy arrray of shape [batch_size x number of classes possible outputs]
+        """
+        #Here we will feed the data in batches to the network
+        epoch_error = np.zeros((-1,1))  #should have shape [batch_size x 1]
+        epoch_error += self.backprop(input_set,output_set)
+
+        return epoch_error
+
+    def train(self,input_set,target_set,epochs=5000,threshold_error=1E-10, batch_mode=True,batch_size=0, error_func=simple_loss):
+        """
+        Trains the network for the specified number of epochs.
+        input_set: numpy array of shape [number of samples x number of features per sample]
+        target_set: numpy array of shape [number of samples x number of features per output]
+        epochs: The number of iterations of the training process. One epoch is completed when
+                    all the training samples in a batch have been presented to the network once.
+        threshold_error: The maximum error that the network should have. After completing one epoch,
+                            if the error of the network is below the threshold, the training stops,
+                            otherwise, it must keep going until the error is lower, or the specified number
+                            of epochs has been reached.
+        batch_mode: boolean flag; tells the program whether to do batch or online training (True is for batch)
+        batch_size: int; how many samples will make one batch. It is 0 by default, which means that one batch will contain all samples
+        """
+        #initialize placeholders:
+        self.last_change = [np.zeros(Mat.shape) for Mat in self.weights]
+        self.batch_gradients = [np.zeros(Mat.shape) for Mat in self.weights]
     
-    def train(self,trainingSet,epochs=1000,threshold_error = 1E-10, batch=False):
+        #Check if it should do batch training
+        if batch_mode:
+            if batch_size > 0:
+                num_samples = input_set.shape[0]
+                try:
+                    assert(batch_size <= num_samples)
+                except AssertionError:
+                    print ("""Batch size '{0}' is bigger than number of samples available '{1}'""".format(batch_size,num_samples))
+                
+                #define start and end index through the data
+                start_idx = 0
+                end_idx = batch_size
+                
+                for i in range(epochs+1):
+                    #Prepare mini batch
+                    mini_inputs = input_set[start_idx:end_idx]
+                    mini_targets = target_set[start_idx:end_idx]
+                    
+                    #compute the error
+                    error = self.backprop(input_samples=mini_inputs,
+                                          target_outputs=mini_targets,
+                                          error_func=error_func)
+                                        
+                    #print information about training
+                    if i % (epochs/100) == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
+                        self.print_training_state(i,error)
+                    if error <= threshold_error:                                        # when the error of the network is less than the threshold, the traning can stop
+                        self.print_training_state(i,error, finished=True)
+                        break
+                    
+                    #TODO: Right now, I assume that the input data is diviible exactly by batch_size, with no left over samples
+                    # but I could also add a check to roll the indexes to the beginning
+                    
+                    #Update indexes
+                    if end_idx < num_samples:       #increase the indexes while there is more data 
+                        start_idx = end_idx
+                        end_idx += batch_size
+                    elif end_idx == num_samples:    #once we reach the end of the training data, we set the indexes back to the beginning
+                        start_idx = 0
+                        end_idx = batch_size
+                    else:
+                        raise NetworkError("""End index for mini batches went out of range: end index:{0} / number of samples:{1}""".format(end_idx,num_samples))
+                    
+            else:
+                mini_inputs = input_set
+                mini_targets = target_set
+                for i in range(epochs+1):
+                    error = self.backprop(input_samples=mini_inputs,
+                                          target_outputs=mini_targets)
+                    if i % (epochs/100) == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
+                        self.print_training_state(i,error)
+                    if error <= threshold_error:                                        # when the error of the network is less than the threshold, the traning can stop
+                        self.print_training_state(i,error, finished=True)
+                        break
+        else:
+            #compute error
+            error = self.TrainEpochOnline(input_set=input_set,
+                                          target_set=target_set)
+            #print information about training
+                    if i % (epochs/100) == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
+                        self.print_training_state(i,error)
+                    if error <= threshold_error:                                        # when the error of the network is less than the threshold, the traning can stop
+                        self.print_training_state(i,error, finished=True)
+                        break
+            
+
+    def train_old(self,trainingSet,epochs=1000,threshold_error=1E-10, batch_mode=True,batch_size=1):
         """
         Trains the network for the specified number of epochs.
         trainingSet: a list of tuples pairing inputs,targets for each training example.
@@ -440,17 +606,19 @@ class Network(object):
             error = self.trainEpoch(trainingSet, batch)
             
             if i % (epochs/100) == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
-                self.print_stateOfTraining(i,error)
+                self.print_training_state(i,error)
             if error <= threshold_error:                                        # when the error of the network is less than the threshold, the traning can stop
-                self.print_stateOfTraining(i,error, finished=True)
+                self.print_training_state(i,error, finished=True)
                 break
     
     # Information printers
-    def print_stateOfTraining(self,iterCount,error,finished=False):
+    def print_training_state(self,iterCount,error,finished=False):
         """Prints the current state of the training process, such as the epoch, current error"""
         #print("Epoch:",iterCount)
         if finished:
             print("Network has reached a state of minimum error.")
         print("Error: {0}\tEpoch {1}".format(error,iterCount))
         
+    
+if __name__=='__main__':
     

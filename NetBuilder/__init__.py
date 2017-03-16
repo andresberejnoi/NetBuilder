@@ -1,1 +1,1 @@
-
+from .NeuralNet import Network

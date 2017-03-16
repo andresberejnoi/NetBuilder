@@ -7,9 +7,9 @@ Created on Thu Mar 16 02:12:46 2017
 """
 
 import numpy as np
-from .. import NeuralNet.Network 
+from .. import Network
 
-def random_training_set(net):
+def random_training_set():
     
     #Define input and output layer neurans
     numIn = 5

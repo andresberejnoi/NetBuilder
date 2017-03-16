@@ -183,6 +183,7 @@ class Network(object):
         self.outActiv_fun = tanh
         self.hiddenActiv_fun = tanh
         self.Gradients = [None]*self.size
+        
          
     # Initializer helpers
     
@@ -303,32 +304,30 @@ class Network(object):
         self.netIns = []                                                        
         self.netOuts = []
         
-        if not batch:
-            I = np.append(inputs,[1])                                           # adds the bias input of 1
-            self.netOuts.append(I)                                              # keeping track of the outputs of every layer
+        input_samples=inputs.shape[0]
+        
+        I = np.concatenate((inputs,np.ones((input_samples,1))),axis=1)                # adds the bias input of 1
+        self.netOuts.append(I)                                              # keeping track of the outputs of every layer
+        
+        #The input is propagated through the layers
+        for idx in range(self.size):
+            W = self.weights[idx]
             
-            #The input is propagated through the layers
-            for idx in range(self.size):
-                W = self.weights[idx]
-                
-                I = np.dot(I,W)                                                 #performs the dot product between the input vector and the weight matrix
-                self.netIns.append(I)                                           # keeping track of the inputs to each layer
-                
-                #if we are on the last layer, we use the output activation function
-                if idx == self.size -1:
-                    I = self.outActiv_fun(I)
-                #otherwise, we use the activation for the hidden layers
-                else:
-                    I = self.hiddenActiv_fun(I)
-                    I = np.append(I,[1])
-                    self.netOuts.append(I)
+            I = np.dot(I,W)                                                 #performs the dot product between the input vector and the weight matrix
+            self.netIns.append(I)                                           # keeping track of the inputs to each layer
             
-            self.out = I
-            return self.out
+            #if we are on the last layer, we use the output activation function
+            if idx == self.size -1:
+                I = self.outActiv_fun(I)
+            #otherwise, we use the activation for the hidden layers
+            else:
+                I = self.hiddenActiv_fun(I)
+                I = np.concatenate((I,np.ones((I.shape[0],1))), axis=1)
+                self.netOuts.append(I)
+        
+        self.out = I
+        return self.out
 
-        else:
-            """implement batch training"""
-            pass
         
     def reversed_feed(self, outIn):
         """

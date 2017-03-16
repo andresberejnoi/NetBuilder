@@ -4,8 +4,8 @@ Created on Fri Feb  5 16:32:41 2016
 @author: andresberejnoi
 """
 import numpy as np
-from ..NeuralNet import Network
-from trainingShapes import shapes2
+from .. import Network
+from .trainingShapes import shapes2
 
 
 shapes = {0: np.array([ [-0.5,-0.5,0.5,0.5,-0.5,-0.5],

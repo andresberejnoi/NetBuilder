@@ -461,7 +461,9 @@ class Network(object):
                 self.Gradients[back_index] = gradients
             else:
                 # First, we calculate the delta for the output layer by taking the partial derivatives of the error function and more
-                delta = (output-target_outputs) * self.outActiv_fun(self.netIns[back_index], derivative=True)
+                delta = ( (output-target_outputs) * self.outActiv_fun(self.netIns[back_index], derivative=True) ).T
+                print(delta)
+                print(delta.shape)
                 gradients = np.outer(self.netOuts[back_index], delta)
                 self.Gradients[back_index] = gradients
         
@@ -575,16 +577,17 @@ class Network(object):
                         self.print_training_state(i,error, finished=True)
                         break
         else:
-            #compute error
-            error = self.TrainEpochOnline(input_set=input_set,
-                                          target_set=target_set)
-            #print information about training
-                    if i % (epochs/100) == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
-                        self.print_training_state(i,error)
-                    if error <= threshold_error:                                        # when the error of the network is less than the threshold, the traning can stop
-                        self.print_training_state(i,error, finished=True)
-                        break
-            
+            for i in range(epochs+1):
+                #compute error
+                error = self.TrainEpochOnline(input_set=input_set,
+                                              target_set=target_set)
+                #print information about training
+                if i % (epochs/100) == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
+                    self.print_training_state(i,error)
+                if error <= threshold_error:                                        # when the error of the network is less than the threshold, the traning can stop
+                    self.print_training_state(i,error, finished=True)
+        
+    
 
     def train_old(self,trainingSet,epochs=1000,threshold_error=1E-10, batch_mode=True,batch_size=1):
         """
@@ -619,6 +622,28 @@ class Network(object):
             print("Network has reached a state of minimum error.")
         print("Error: {0}\tEpoch {1}".format(error,iterCount))
         
+
+
+
+################################################################################################
+#Some tests
+def random_training_set():
+    
+    #Define input and output layer neurans
+    numIn = 2
+    numOut = 3
+    #create random inputs and outputs
+    np.random.seed(50)
+    input_set = np.random.rand(10,numIn)   #1000 samples where each sample has numIn features
+    target_set = np.random.rand(10,numOut)   
+    
+    net = Network(topology=[numIn,5,numOut])
+    net.train(input_set=input_set,
+              target_set=target_set,
+              batch_size=0)
     
 if __name__=='__main__':
-    
+    random_training_set()
+
+
+

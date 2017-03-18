@@ -53,15 +53,16 @@ def test_AND():
     net.train(input_set=input_set,
               target_set=target_set,
               batch_size=0,
-              epochs=1000)
+              epochs=100)
     
-    x = np.array([input_set[0]])
+    x = input_set[0:1]
+    y = target_set[0:1]
     print(x.shape)
-    test_out = net.feedforward(input_set)
+    test_out = net.feedforward(x)
     print('TEST OUTPUT:')
     print(test_out)
     
-    error = mean_squared_error(target=target_set,actual=test_out)
+    error = mean_squared_error(target=y,actual=test_out)
     print('ERROR:',error)
     
     return net
@@ -88,11 +89,11 @@ def test_XOR():
 
     
     
-    net = Network(topology=[numIn,1,numOut])
+    net = Network(topology=[numIn,5,numOut])
     net.train(input_set=input_set,
               target_set=target_set,
               batch_size=4,
-              epochs=200)
+              epochs=100)
     
     
     test_out = net.feedforward(input_set)
@@ -106,5 +107,5 @@ def test_XOR():
     
 if __name__=='__main__':
     #random_training_set()
-    #test_AND()
-    test_XOR()
+    test_AND()
+    #test_XOR()

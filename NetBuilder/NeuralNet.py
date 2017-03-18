@@ -104,7 +104,7 @@ def tanh(x, derivative=False):
     else:
         return np.tanh(x)
     
-def simple_loss(target,actual):
+def mean_squared_error(target,actual):
     """ 
     target: numpy array with values we want the network to approximate
     actual: numpy array (same shape as target); the output of the network after feedforward
@@ -119,7 +119,17 @@ def simple_loss(target,actual):
     except AssertionError:
         print("""Shape of target array '{0}' does not match shape of actual '{1}'""".format(target.shape,actual.shape))
     #compute the error and return it    
-    error = 0.5 * np.sum((target-actual)**2, axis=1, keepdims=True)
+    print('='*80)
+    print('Error Function: Simple loss\nTarget:\tActual:')
+    
+    for i in range(len(target)):
+        print(target[i],actual[i])
+    
+    print()
+    print('Summing over rows and squaring:')
+    for i in range(len(target)):
+        print(np.sum((target[i]-actual[i])**2))
+    error = np.sum(0.5 * np.sum((target-actual)**2, axis=1, keepdims=True))
     return error
     
 #---------------------------------------------------------------------------------------------
@@ -326,7 +336,7 @@ class Network(object):
     def feedforward(self,inputs):
         """
         Performs the feedforward propagation of the inputs through the layers.
-        inputs: numpy array; inputs to the first layer
+        inputs: numpy array of shape [number of samples x number of features per sample]; inputs to the first layer
         """
         # These two lists will contain the inputs and the outputs for each layer, respectively
         self.netIns = []                                                        
@@ -436,24 +446,14 @@ class Network(object):
         error = error_func(expected_out,actual_out)
         return error
     
-    def backprop(self, input_samples,target_outputs, batch_mode=True,error_func=simple_loss):
+    def _backprop(self, input_samples,target_outputs,output, batch_mode=True):
         """
         Backpropagation
         input_samples: numpy array of all samples in a batch
         target_outputs: numpy array of matching targets for each sample
+        output: numpy array; actual output from feedforward propagation. It will be used to train the network
         batch_mode: boolean flag. Indicates whether to use batch or online training.
-        error_func: a function to compute the error
         """
-        #compute network output:
-        output = self.feedforward(input_samples)
-        
-        #compute error
-        error = np.sum(error_func(target=target_outputs,
-                           actual=output))
-        #error = self._compute_error(expected_out=target_outputs,
-        #                            actual_out=output,
-        #                            error_func=error_func)
-        
         #Define placeholder variables
         delta = None
         gradients = None
@@ -461,47 +461,61 @@ class Network(object):
         #Compute gradients and deltas
         for i in range(self.size):
             back_index =self.size-1 -i                  # This will be used for the items to be accessed backwards  
-            #print("BackProp step:",i,'back_index:',back_index)
             if i!=0:
                 # The calculation for the hidden deltas is slightly different than for the output neurons
                 W = self.weights[back_index+1]
-                #print('W.shape:',W.shape,'delta.shape:',delta.shape,'dotPro.shape:',np.dot(W,delta).shape)                
                 delta = np.dot(W,delta) * self.hiddenActiv_fun(self.netIns[back_index], derivative=True).T              #we slice off the delta value corresponding to the bias node
-                #print('new delta shape:',delta.shape)
-                #delta = np.dot(delta, W) * self.hiddenActiv_fun(self.netOuts[back_index], derivative=True)
-                #gradients = np.outer(self.netOuts[back_index], delta)           # the transpose is necessary to get a matrix of the correct shape. This can be avoided by changing the way the matrix is represented
+                #Compute gradients and store them:
                 gradients = np.dot(delta,self.netOuts[back_index]).T
-                
-                #print('netOuts[back_idx] shape:',self.netOuts[back_index].shape)
-                #print('gradients shape:',gradients.shape,'should be:',self.weights[back_index].shape)
-                
                 self.Gradients[back_index] = gradients
-                
-                #print('='*80,'\n')
+
             else:
                 # First, we calculate the delta for the output layer by taking the partial derivatives of the error function and more
                 delta = ( (output-target_outputs) * self.outActiv_fun(self.netIns[back_index], derivative=True) ).T
-                
-                #print(delta)
-                #print('delta shape:',delta.shape)
+                #Compute gradients and store them
                 gradients = np.dot(delta,self.netOuts[back_index]).T
-                #print('netOuts[back_idx] shape:',self.netOuts[back_index].shape)
-                #print('gradients shape:',gradients.shape,'should be:',self.weights[back_index].shape)
                 self.Gradients[back_index] = gradients
                 
-                #print('='*80,'\n')
-        
         # Update weights using the computed gradients
         for k in range(self.size):
-            #print('batch shape:',self.batch_gradients[k].shape,'gradients shape:',self.Gradients[k].shape)
             self.batch_gradients[k] += self.Gradients[k]
             delta_weight = self.learningRate * self.batch_gradients[i]
             self.weights[i] -= delta_weight + self.momentum*self.last_change[i]
-            self.last_change[i] = self.batch_gradients[i]
+            self.last_change[i] = np.copy(self.batch_gradients[i])
+            
+    def backprop(self, input_samples,target,output, batch_mode=True):
+        """
+        Backpropagation
+        input_samples: numpy array of all samples in a batch
+        target_outputs: numpy array of matching targets for each sample
+        output: numpy array; actual output from feedforward propagation. It will be used to train the network
+        batch_mode: boolean flag. Indicates whether to use batch or online training.
+        """
+        #Define placeholder variables
+        delta = None
+        gradients = None
         
-        return error
-        
-    
+        #Compute gradients and deltas
+        for i in range(self.size):
+            back_index =self.size-1 -i                  # This will be used for the items to be accessed backwards  
+            if i!=0:
+                
+
+            else:
+                #Herewe calculate gradients for final layer
+                #delta = error_func(target,output,derivative=True) * self.outActiv_fun(self.netIns[back_index],derivative=True)
+                d_activ = self.outActiv_fun(self.netOuts[back_index].T,derivative=True)
+                d_error = error_func(target,output,derivative=True)
+                delta = np.dot(d_activ,d_error)
+                gradients = np.dot()
+                
+        # Update weights using the computed gradients	
+        for k in range(self.size):
+            self.batch_gradients[k] += self.Gradients[k]
+            delta_weight = self.learningRate * self.batch_gradients[i]
+            self.weights[i] -= delta_weight + self.momentum*self.last_change[i]
+            self.last_change[i] = np.copy(self.batch_gradients[i])
+            
         
     def TrainEpochOnline(self,input_set,target_set):
         """
@@ -529,7 +543,7 @@ class Network(object):
 
         return epoch_error
 
-    def train(self,input_set,target_set,epochs=5000,threshold_error=1E-10, batch_mode=True,batch_size=0, error_func=simple_loss):
+    def train(self,input_set,target_set,epochs=5000,threshold_error=1E-10, batch_mode=True,batch_size=0, error_func=mean_squared_error):
         """
         Trains the network for the specified number of epochs.
         input_set: numpy array of shape [number of samples x number of features per sample]
@@ -556,20 +570,42 @@ class Network(object):
                 except AssertionError:
                     print ("""Batch size '{0}' is bigger than number of samples available '{1}'""".format(batch_size,num_samples))
                 
-                #define start and end index through the data
-                start_idx = 0
-                end_idx = batch_size
+                #Define number of iterations per epoch:
+                num_iterations = num_samples // batch_size + (1 if num_samples%batch_size > 0 else 0)
                 
-                for i in range(epochs+1):
-                    #Prepare mini batch
-                    mini_inputs = input_set[start_idx:end_idx]
-                    mini_targets = target_set[start_idx:end_idx]
+                for epoch in range(epochs+1):
+                    #define start and end index through the data
+                    start_idx = 0
+                    end_idx = batch_size
+                    error = 0
+                    for i in range(num_iterations):                    
+                        #Prepare mini batch
+                        mini_inputs = input_set[start_idx:end_idx]
+                        mini_targets = target_set[start_idx:end_idx]
+                        
+                        #Feed Network with inputs can compute error
+                        output = self.feedforward(mini_inputs)
+                        error += error_func(target=mini_targets,actual=output)
+                        print('Error:',error,'Epoch:',epoch,'iter:',i)
+                        #compute the error
+                        self.backprop(input_samples=mini_inputs,
+                                              target_outputs=mini_targets,
+                                              output=output)
+                        #TODO: Right now, I assume that the input data is diviible exactly by batch_size, with no left over samples
+                        # but I could also add a check to roll the indexes to the beginning
+                        #TODO: Read the mini batch data from some file or generator. The current implementation loads the whole batch in memory and then
+                        # takes mini batches from there, but this makes the mini batch method pointless (sort of)
+                        
+                        #Update indexes
+                        if end_idx < num_samples:       #increase the indexes while there is more data 
+                            start_idx = end_idx
+                            if (num_samples-end_idx) < batch_size:
+                                end_idx = num_samples
+                            else:
+                                end_idx += batch_size
+                        #else:
+                        #    raise NetworkError("""End index for mini batches went out of range: end index:{0} / number of samples:{1}""".format(end_idx,num_samples))
                     
-                    #compute the error
-                    error = self.backprop(input_samples=mini_inputs,
-                                          target_outputs=mini_targets,
-                                          error_func=error_func)
-                                        
                     #print information about training
                     if i % (epochs/100) == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
                         self.print_training_state(i,error)
@@ -577,25 +613,21 @@ class Network(object):
                         self.print_training_state(i,error, finished=True)
                         break
                     
-                    #TODO: Right now, I assume that the input data is diviible exactly by batch_size, with no left over samples
-                    # but I could also add a check to roll the indexes to the beginning
-                    
-                    #Update indexes
-                    if end_idx < num_samples:       #increase the indexes while there is more data 
-                        start_idx = end_idx
-                        end_idx += batch_size
-                    elif end_idx == num_samples:    #once we reach the end of the training data, we set the indexes back to the beginning
-                        start_idx = 0
-                        end_idx = batch_size
-                    else:
-                        raise NetworkError("""End index for mini batches went out of range: end index:{0} / number of samples:{1}""".format(end_idx,num_samples))
                     
             else:
                 mini_inputs = input_set
                 mini_targets = target_set
                 for i in range(epochs+1):
-                    error = self.backprop(input_samples=mini_inputs,
-                                          target_outputs=mini_targets)
+                    #Feed Network with inputs can compute error
+                    output = self.feedforward(mini_inputs)
+                    error = error_func(target=mini_targets,actual=output)
+                    print('Error:',error,'Epoch:',i)
+                    
+                    #compute the error
+                    self.backprop(input_samples=mini_inputs,
+                                          target_outputs=mini_targets,
+                                          output=output)
+                    
                     if i % (epochs/100) == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
                         self.print_training_state(i,error)
                     if error <= threshold_error:                                        # when the error of the network is less than the threshold, the traning can stop
@@ -647,63 +679,4 @@ class Network(object):
             print("Network has reached a state of minimum error.")
         print("Error: {0}\tEpoch {1}".format(error,iterCount))
         
-
-
-
 ################################################################################################
-#Some tests
-def random_training_set():
-    
-    #Define input and output layer neurans
-    numIn = 2
-    numOut = 3
-    #create random inputs and outputs
-    np.random.seed(50)
-    input_set = np.random.rand(1000,numIn)   #1000 samples where each sample has numIn features
-    target_set = np.random.rand(1000,numOut)   
-    
-    net = Network(topology=[numIn,3,numOut])
-    net.train(input_set=input_set,
-              target_set=target_set,
-              batch_size=0,
-              epochs=10000)
-    
-def test_AND():
-    
-    #Define input and output layer neurans
-    numIn = 2
-    numOut = 1
-    
-    num_samples = 4
-    
-    #Create training sets
-    T,F = 1.,-1.
-    input_set = np.array([[F,F],
-                          [F,T],
-                          [T,F],
-                          [T,T]])
-    
-    target_set = np.array([[F],
-                           [F],
-                           [F],
-                           [T]])
-
-    
-    
-    net = Network(topology=[numIn,5,5,numOut])
-    net.train(input_set=input_set,
-              target_set=target_set,
-              batch_size=0,
-              epochs=1000)
-    
-    
-    test_out = net.feedforward(input_set)
-    print('TEST OUTPUT:')
-    print(test_out)
-    
-if __name__=='__main__':
-    #random_training_set()
-    test_AND()
-
-
-

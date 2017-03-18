@@ -6,6 +6,17 @@ Created on Wed Mar  8 17:12:11 2017
 """
 
 from setuptools import setup
+import os
+
+def package_files(directory):
+    paths = []
+    for (path, directories, filenames) in os.walk(directory):
+        for filename in filenames:
+            paths.append(os.path.join('..', path, filename))
+    return paths
+
+paths = package_files('~/Github/NetBuilder/NetBuilder')
+
 long_desc = """Neural Network Builder
 The neural network class is in NeuralNet.py. It allows to easily create fully connected feedforward networks of any size allowed by available memory. 
 It uses numpy arrays as the primary data structure for the weight matrices. 
@@ -17,9 +28,11 @@ with open('VERSION', 'r') as ver:
 setup(name='netbuilder',
       version=version,
       packages=['NetBuilder'],
+      package_data={'':paths},
       author='Andres Berejnoi',
       author_email='andresberejnoi@gmail.com',
       url='https://github.com/andresberejnoi/NetBuilder',
+      #download_url = 'https://github.com/andresberejnoi/NetBuilder/releases',
       license='MIT',
       description=desc,
       long_description=long_desc,

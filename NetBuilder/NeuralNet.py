@@ -281,7 +281,7 @@ class Network(object):
         '''
         try:
             self.hiddenActiv_fun = self.functions[func]
-        except:
+        except KeyError:
             message = """The function '{0}' is not available.\nPlease select one of the following functions:\n{1}""".format(func, ''.join(['-> '+fun+'\n' for fun in list(self.functions)]) )
             print(message)
             #raise KeyError
@@ -384,8 +384,6 @@ class Network(object):
             I = np.dot(W,I)[:-1]                #The dot product of the two numpy arrays will have one extra element, corresponding to the bias node, but we do not need it, so we slice it off
         return I
             
-                   
-        
     def backprop_old(self,inputs,target, batch=False):
         """
         Backpropagation (online)
@@ -432,10 +430,7 @@ class Network(object):
             # This clause is for batch training.
             # We will iterate through the cumulative gradients 
             for k in range(self.size):
-                self.batch_gradients[k] += self.Gradients[k]
-                
-
-            
+                self.batch_gradients[k] += self.Gradients[k]           
         return error
  
     
@@ -450,43 +445,17 @@ class Network(object):
         error = error_func(expected_out,actual_out)
         return error
     
-    def _backprop(self, input_samples,target_outputs,output, batch_mode=True):
+    def optimize(self,gradients):
         """
-        Backpropagation
-        input_samples: numpy array of all samples in a batch
-        target_outputs: numpy array of matching targets for each sample
-        output: numpy array; actual output from feedforward propagation. It will be used to train the network
-        batch_mode: boolean flag. Indicates whether to use batch or online training.
+        gradients: iterable containing numpy arrays; each numpy array is the gradient matrix computed by backpropagation for each layer matrix
         """
-        #Define placeholder variables
-        delta = None
-        gradients = None
-        
-        #Compute gradients and deltas
-        for i in range(self.size):
-            back_index =self.size-1 -i                  # This will be used for the items to be accessed backwards  
-            if i!=0:
-                # The calculation for the hidden deltas is slightly different than for the output neurons
-                W = self.weights[back_index+1]
-                delta = np.dot(W,delta) * self.hiddenActiv_fun(self.netIns[back_index], derivative=True).T              #we slice off the delta value corresponding to the bias node
-                #Compute gradients and store them:
-                gradients = np.dot(delta,self.netOuts[back_index]).T
-                self.Gradients[back_index] = gradients
-
-            else:
-                # First, we calculate the delta for the output layer by taking the partial derivatives of the error function and more
-                delta = ( (output-target_outputs) * self.outActiv_fun(self.netIns[back_index], derivative=True) ).T
-                #Compute gradients and store them
-                gradients = np.dot(delta,self.netOuts[back_index]).T
-                self.Gradients[back_index] = gradients
-                
-        # Update weights using the computed gradients
         for k in range(self.size):
-            self.batch_gradients[k] += self.Gradients[k]
-            delta_weight = self.learningRate * self.batch_gradients[i]
-            self.weights[i] -= delta_weight + self.momentum*self.last_change[i]
-            self.last_change[i] = np.copy(self.batch_gradients[i])
-            
+            delta_weight = self.learningRate * gradients[k]
+            full_change = delta_weight + self.momentum*self.last_change[k]
+            self.weights[k] -= full_change
+            self.last_change[k] = np.copy(gradients[k])
+        
+                
     def backprop(self, input_samples,target,output, error_func, batch_mode=True):
         """
         Backpropagation
@@ -494,6 +463,8 @@ class Network(object):
         target_outputs: numpy array of matching targets for each sample
         output: numpy array; actual output from feedforward propagation. It will be used to train the network
         batch_mode: boolean flag. Indicates whether to use batch or online training.
+        error_func: function object; this is the function that computes the error of the epoch and used during backpropagation.
+                    It must accept parameters as: error_func(target={target numpy array},actual={actual output from network},derivative={boolean to indicate the operation mode})
         """
         #Define placeholder variables
         delta = None
@@ -537,18 +508,6 @@ class Network(object):
                 
         return epoch_error
         
-    def TrainEpochBatch(self,input_set,output_set):
-        """
-        Trains the network in batches.
-        input_set: numpy array of shape [batch_size x features per sample]
-        output_set: numpy arrray of shape [batch_size x number of classes possible outputs]
-        """
-        #Here we will feed the data in batches to the network
-        epoch_error = np.zeros((-1,1))  #should have shape [batch_size x 1]
-        epoch_error += self.backprop(input_set,output_set)
-
-        return epoch_error
-
     def train(self,input_set,target_set,epochs=5000,threshold_error=1E-10, batch_mode=True,batch_size=0, error_func=mean_squared_error):
         """
         Trains the network for the specified number of epochs.
@@ -654,33 +613,6 @@ class Network(object):
                 if error <= threshold_error:                                        # when the error of the network is less than the threshold, the traning can stop
                     self.print_training_state(i,error, finished=True)
         
-    
-
-    def train_old(self,trainingSet,epochs=1000,threshold_error=1E-10, batch_mode=True,batch_size=1):
-        """
-        Trains the network for the specified number of epochs.
-        trainingSet: a list of tuples pairing inputs,targets for each training example.
-        epochs: The number of iterations of the training process. One epoch is completed when
-                    all the training samples have been presented to the network once.
-        threshold_error: The maximum error that the network should have. After completing one epoch,
-                            if the error of the network is below the threshold, the training stops,
-                            otherwise, it must keep going until the error is lower, or the specified number
-                            of epochs has been reached.
-        """
-        self.last_change = [np.zeros(Mat.shape) for Mat in self.weights]
-        if batch_mode is True:
-            # if we are using batch training, we create a list that will contain the accumulated gradient change for all the training patterns:
-            self.batch_gradients = [np.zeros(Mat.shape) for Mat in self.last_change]
-
-        for i in range(epochs+1):
-            error = self.trainEpoch(trainingSet, batch_mode)
-            
-            if i % (epochs/100) == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
-                self.print_training_state(i,error)
-            if error <= threshold_error:                                        # when the error of the network is less than the threshold, the traning can stop
-                self.print_training_state(i,error, finished=True)
-                break
-    
     # Information printers
     def print_training_state(self,iterCount,error,finished=False):
         """Prints the current state of the training process, such as the epoch, current error"""
@@ -688,5 +620,13 @@ class Network(object):
         if finished:
             print("Network has reached a state of minimum error.")
         print("Error: {0}\tEpoch {1}".format(error,iterCount))
+    
+    def _cleanup(self):
+        """
+        Sets containers back to their original state. It is a test function for now.
+        """
+        self.netIns = []
+        self.netOuts = []
+        self.Gradients = [None]*self.size
         
 ################################################################################################

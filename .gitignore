@@ -11,3 +11,4 @@ build
 dist
 #ignoring files from setup.py
 MANIFEST
+*.egg-info

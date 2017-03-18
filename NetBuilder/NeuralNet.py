@@ -104,7 +104,7 @@ def tanh(x, derivative=False):
     else:
         return np.tanh(x)
     
-def mean_squared_error(target,actual):
+def mean_squared_error(target,actual,derivative=False):
     """ 
     target: numpy array with values we want the network to approximate
     actual: numpy array (same shape as target); the output of the network after feedforward
@@ -118,19 +118,23 @@ def mean_squared_error(target,actual):
         assert(target.shape==actual.shape)
     except AssertionError:
         print("""Shape of target array '{0}' does not match shape of actual '{1}'""".format(target.shape,actual.shape))
-    #compute the error and return it    
-    print('='*80)
-    print('Error Function: Simple loss\nTarget:\tActual:')
-    
-    for i in range(len(target)):
-        print(target[i],actual[i])
-    
-    print()
-    print('Summing over rows and squaring:')
-    for i in range(len(target)):
-        print(np.sum((target[i]-actual[i])**2))
-    error = np.sum(0.5 * np.sum((target-actual)**2, axis=1, keepdims=True))
-    return error
+        raise
+    if not derivative:
+        #compute the error and return it    
+        print('='*80)
+        print('Error Function: MSE\nTarget:\tActual:')
+        
+        for i in range(len(target)):
+            print(target[i],actual[i])
+        
+        print()
+        print('Summing over rows and squaring:')
+        for i in range(len(target)):
+            print(np.sum((target[i]-actual[i])**2))
+        error = np.sum(0.5 * np.sum((target-actual)**2, axis=1, keepdims=True))
+        return error
+    else:
+        return (actual - target)
     
 #---------------------------------------------------------------------------------------------
 class NetworkError(Exception):
@@ -483,7 +487,7 @@ class Network(object):
             self.weights[i] -= delta_weight + self.momentum*self.last_change[i]
             self.last_change[i] = np.copy(self.batch_gradients[i])
             
-    def backprop(self, input_samples,target,output, batch_mode=True):
+    def backprop(self, input_samples,target,output, error_func, batch_mode=True):
         """
         Backpropagation
         input_samples: numpy array of all samples in a batch
@@ -499,24 +503,26 @@ class Network(object):
         for i in range(self.size):
             back_index =self.size-1 -i                  # This will be used for the items to be accessed backwards  
             if i!=0:
-                
-
+                W_trans = self.weights[back_index+1].T        #we use the transpose of the weights in the current layer
+                d_activ = self.hiddenActiv_fun(self.netIns[back_index],derivative=True)
+                d_error = np.dot(delta, W_trans)
+                delta = d_error * d_activ
+                gradients = np.dot(self.netOuts[back_index].T , delta)
+                self.Gradients[back_index] = gradients
             else:
                 #Herewe calculate gradients for final layer
-                #delta = error_func(target,output,derivative=True) * self.outActiv_fun(self.netIns[back_index],derivative=True)
-                d_activ = self.outActiv_fun(self.netOuts[back_index].T,derivative=True)
+                d_activ = self.outActiv_fun(self.netIns[back_index],derivative=True)
                 d_error = error_func(target,output,derivative=True)
-                delta = np.dot(d_activ,d_error)
-                gradients = np.dot()
-                
-        # Update weights using the computed gradients	
+                delta = d_error * d_activ
+                gradients = np.dot(self.netOuts[back_index].T , delta)
+                self.Gradients[back_index] = gradients
+        # Update weights using the computed gradients
         for k in range(self.size):
-            self.batch_gradients[k] += self.Gradients[k]
-            delta_weight = self.learningRate * self.batch_gradients[i]
-            self.weights[i] -= delta_weight + self.momentum*self.last_change[i]
-            self.last_change[i] = np.copy(self.batch_gradients[i])
-            
-        
+            delta_weight = self.learningRate * self.Gradients[k]
+            full_change = delta_weight + self.momentum*self.last_change[k]
+            self.weights[k] -= full_change
+            self.last_change[k] = np.copy(self.Gradients[k])
+       
     def TrainEpochOnline(self,input_set,target_set):
         """
         Presents every training example to the network once, backpropagating the error
@@ -556,6 +562,8 @@ class Network(object):
                             of epochs has been reached.
         batch_mode: boolean flag; tells the program whether to do batch or online training (True is for batch)
         batch_size: int; how many samples will make one batch. It is 0 by default, which means that one batch will contain all samples
+        error_func: function object; this is the function that computes the error of the epoch and used during backpropagation.
+                    It must accept parameters as: error_func(target={target numpy array},actual={actual output from network},derivative={boolean to indicate the operation mode})
         """
         #initialize placeholders:
         self.last_change = [np.zeros(Mat.shape) for Mat in self.weights]
@@ -589,7 +597,8 @@ class Network(object):
                         print('Error:',error,'Epoch:',epoch,'iter:',i)
                         #compute the error
                         self.backprop(input_samples=mini_inputs,
-                                              target_outputs=mini_targets,
+                                              target=mini_targets,
+                                              error_func=error_func,
                                               output=output)
                         #TODO: Right now, I assume that the input data is diviible exactly by batch_size, with no left over samples
                         # but I could also add a check to roll the indexes to the beginning
@@ -625,7 +634,8 @@ class Network(object):
                     
                     #compute the error
                     self.backprop(input_samples=mini_inputs,
-                                          target_outputs=mini_targets,
+                                          target=mini_targets,
+                                          error_func=error_func,
                                           output=output)
                     
                     if i % (epochs/100) == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently

@@ -24,7 +24,7 @@ def random_training_set():
     net.train(input_set=input_set,
               target_set=target_set,
               batch_size=0,
-              epochs=10000)
+              epochs=1000)
     
 def test_AND():
     
@@ -35,7 +35,7 @@ def test_AND():
     #num_samples = 4
     
     #Create training sets
-    T,F = 1.,0.
+    T,F = 1.,-1.
     input_set = np.array([[F,F],
                           [F,T],
                           [T,F],
@@ -48,14 +48,15 @@ def test_AND():
 
     
     
-    net = Network(topology=[numIn,3,numOut])
-    net.set_outActivation_fun(func='sigmoid')
+    net = Network(topology=[numIn,numOut])
+    #net.set_outActivation_fun(func='sigmoid')
     net.train(input_set=input_set,
               target_set=target_set,
-              batch_size=4,
-              epochs=100)
+              batch_size=0,
+              epochs=1000)
     
-    
+    x = np.array([input_set[0]])
+    print(x.shape)
     test_out = net.feedforward(input_set)
     print('TEST OUTPUT:')
     print(test_out)
@@ -63,6 +64,8 @@ def test_AND():
     error = mean_squared_error(target=target_set,actual=test_out)
     print('ERROR:',error)
     
+    return net
+
 def test_XOR():
     
     #Define input and output layer neurans
@@ -99,7 +102,9 @@ def test_XOR():
     error = mean_squared_error(target=target_set,actual=test_out)
     print('ERROR:',error)
     
+    return net
+    
 if __name__=='__main__':
     #random_training_set()
-    test_AND()
-    #test_XOR()
+    #test_AND()
+    test_XOR()

@@ -5,7 +5,7 @@ Created on Wed Mar  8 17:12:11 2017
 @author: andresberejnoi
 """
 
-from setuptools import setup
+from setuptools import setup, find_packages
 import os
 
 def package_files(directory):
@@ -27,8 +27,11 @@ desc = """Allows to create and train fully connected feedforward deep neural net
 #    version = ver.read().rstrip()
 setup(name='netbuilder',
       version='0.1.2',
-      packages=['NetBuilder'],
-      package_data={'':paths},
+      #packages=['NetBuilder'],
+      packages=find_packages(),
+      #package_data={'':paths},
+      #package_data={'NetBuilder':find_packages('.')},
+      include_package_data=True,
       author='Andres Berejnoi',
       author_email='andresberejnoi@gmail.com',
       url='https://github.com/andresberejnoi/NetBuilder',

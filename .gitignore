@@ -7,8 +7,8 @@
 #Ignoring todo file:
 todo.txt
 #ignoring package folders
-build
-dist
+build/
+dist/
 #ignoring files from setup.py
-MANIFEST
+MANIFEST.in
 *.egg-info

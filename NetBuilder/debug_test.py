@@ -53,7 +53,8 @@ def test_AND():
     net.train(input_set=input_set,
               target_set=target_set,
               batch_size=0,
-              epochs=100)
+              epochs=1000,
+              print_rate=100)
     
     x = input_set[0:1]
     y = target_set[0:1]

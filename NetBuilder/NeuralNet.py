@@ -121,16 +121,15 @@ def mean_squared_error(target,actual,derivative=False):
         raise
     if not derivative:
         #compute the error and return it    
-        print('='*80)
-        print('Error Function: MSE\nTarget:\tActual:')
+        #print('='*80)
+        #print('Error Function: MSE\nTarget:\tActual:')
+        #for i in range(len(target)):
+        #    print(target[i],actual[i])
         
-        for i in range(len(target)):
-            print(target[i],actual[i])
-        
-        print()
-        print('Summing over rows and squaring:')
-        for i in range(len(target)):
-            print(np.sum((target[i]-actual[i])**2))
+        #print()
+        #print('Summing over rows and squaring:')
+        #for i in range(len(target)):
+        #    print(np.sum((target[i]-actual[i])**2))
         error = np.sum(0.5 * np.sum((target-actual)**2, axis=1, keepdims=True))
         return error
     else:
@@ -508,7 +507,7 @@ class Network(object):
                 
         return epoch_error
         
-    def train(self,input_set,target_set,epochs=5000,threshold_error=1E-10, batch_mode=True,batch_size=0, error_func=mean_squared_error):
+    def train(self,input_set,target_set,epochs=5000,threshold_error=1E-10, batch_mode=True,batch_size=0, error_func=mean_squared_error,print_rate=100):
         """
         Trains the network for the specified number of epochs.
         input_set: numpy array of shape [number of samples x number of features per sample]
@@ -520,9 +519,11 @@ class Network(object):
                             otherwise, it must keep going until the error is lower, or the specified number
                             of epochs has been reached.
         batch_mode: boolean flag; tells the program whether to do batch or online training (True is for batch)
-        batch_size: int; how many samples will make one batch. It is 0 by default, which means that one batch will contain all samples
+        batch_size: int; how many samples will make one mini batch. It is 0 by default, which means that one batch will contain all samples.
         error_func: function object; this is the function that computes the error of the epoch and used during backpropagation.
                     It must accept parameters as: error_func(target={target numpy array},actual={actual output from network},derivative={boolean to indicate the operation mode})
+        print_rate: int: controls the frequency of printing. It tells the trainer to print the error every certain number of epochs: print if current epoch is a multiple of print_rate.
+                        Increase this number to print less often, or reduce it to print more often.
         """
         #initialize placeholders:
         self.last_change = [np.zeros(Mat.shape) for Mat in self.weights]
@@ -536,6 +537,7 @@ class Network(object):
                     assert(batch_size <= num_samples)
                 except AssertionError:
                     print ("""Batch size '{0}' is bigger than number of samples available '{1}'""".format(batch_size,num_samples))
+                    raise
                 
                 #Define number of iterations per epoch:
                 num_iterations = num_samples // batch_size + (1 if num_samples%batch_size > 0 else 0)
@@ -553,7 +555,7 @@ class Network(object):
                         #Feed Network with inputs can compute error
                         output = self.feedforward(mini_inputs)
                         error += error_func(target=mini_targets,actual=output)
-                        print('Error:',error,'Epoch:',epoch,'iter:',i)
+                        #print('Error:',error,'Epoch:',epoch,'iter:',i)
                         #compute the error
                         self.backprop(input_samples=mini_inputs,
                                               target=mini_targets,
@@ -573,23 +575,23 @@ class Network(object):
                                 end_idx += batch_size
                         #else:
                         #    raise NetworkError("""End index for mini batches went out of range: end index:{0} / number of samples:{1}""".format(end_idx,num_samples))
-                    
+                        
                     #print information about training
-                    if i % (epochs/100) == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
-                        self.print_training_state(i,error)
+                    if epoch % print_rate == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
+                        self.print_training_state(epoch,error)
                     if error <= threshold_error:                                        # when the error of the network is less than the threshold, the traning can stop
-                        self.print_training_state(i,error, finished=True)
+                        self.print_training_state(epoch,error, finished=True)
                         break
                     
                     
             else:
                 mini_inputs = input_set
                 mini_targets = target_set
-                for i in range(epochs+1):
+                for epoch in range(epochs+1):
                     #Feed Network with inputs can compute error
                     output = self.feedforward(mini_inputs)
                     error = error_func(target=mini_targets,actual=output)
-                    print('Error:',error,'Epoch:',i)
+                    #print('Error:',error,'Epoch:',i)
                     
                     #compute the error
                     self.backprop(input_samples=mini_inputs,
@@ -597,29 +599,31 @@ class Network(object):
                                           error_func=error_func,
                                           output=output)
                     
-                    if i % (epochs/100) == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
-                        self.print_training_state(i,error)
+                    #if epoch % (epochs/print_rate) == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
+                    if epoch % print_rate == 0:
+                        self.print_training_state(epoch,error)
                     if error <= threshold_error:                                        # when the error of the network is less than the threshold, the traning can stop
-                        self.print_training_state(i,error, finished=True)
+                        self.print_training_state(epoch,error, finished=True)
                         break
         else:
-            for i in range(epochs+1):
+            for epoch in range(epochs+1):
                 #compute error
                 error = self.TrainEpochOnline(input_set=input_set,
                                               target_set=target_set)
                 #print information about training
-                if i % (epochs/100) == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
-                    self.print_training_state(i,error)
+                if epoch % print_rate == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
+                    self.print_training_state(epoch,error)
                 if error <= threshold_error:                                        # when the error of the network is less than the threshold, the traning can stop
-                    self.print_training_state(i,error, finished=True)
+                    self.print_training_state(epoch,error, finished=True)
         
     # Information printers
-    def print_training_state(self,iterCount,error,finished=False):
+    def print_training_state(self,epoch,error,finished=False):
         """Prints the current state of the training process, such as the epoch, current error"""
         #print("Epoch:",iterCount)
         if finished:
             print("Network has reached a state of minimum error.")
-        print("Error: {0}\tEpoch {1}".format(error,iterCount))
+        #print("Error: {0}\tEpoch {1}".format(error,iterCount))
+        print("""Epoch {0} completed""".format(epoch),'Error:',error)
     
     def _cleanup(self):
         """

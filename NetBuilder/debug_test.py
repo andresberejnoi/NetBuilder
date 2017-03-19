@@ -6,7 +6,7 @@ Created on Fri Mar 17 00:25:09 2017
 @author: andresberejnoi
 """
 
-from NeuralNet import Network, mean_squared_error
+from . import Network, mean_squared_error
 import numpy as np
 
 #Some tests
@@ -28,6 +28,8 @@ def random_training_set():
     
 def test_AND():
     
+    print('='*80)
+    print("TEST AND")
     #Define input and output layer neurans
     numIn = 2
     numOut = 1
@@ -65,11 +67,14 @@ def test_AND():
     
     error = mean_squared_error(target=y,actual=test_out)
     print('ERROR:',error)
+    print('='*80)
     
     return net
 
 def test_XOR():
     
+    print('='*80)
+    print("TEST XOR")
     #Define input and output layer neurans
     numIn = 2
     numOut = 1
@@ -103,6 +108,7 @@ def test_XOR():
     
     error = mean_squared_error(target=target_set,actual=test_out)
     print('ERROR:',error)
+    print('='*80)
     
     return net
     

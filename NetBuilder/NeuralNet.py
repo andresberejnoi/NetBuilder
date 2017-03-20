@@ -326,7 +326,7 @@ class Network(object):
                     if keep_bias is False:
                         Mat = Mat[:-1]
                     np.savetxt(handler, Mat, delimiter=',')
-                    
+            print("""file saved successfully as {0}""".format(filename))
             handler.close()
         else:
             try:

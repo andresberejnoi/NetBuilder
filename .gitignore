@@ -12,3 +12,7 @@ dist/
 #ignoring files from setup.py
 MANIFEST.in
 *.egg-info
+*.npy
+*.npz
+*.cfg
+*.yml

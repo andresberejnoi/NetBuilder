@@ -7,6 +7,7 @@ Created on Fri Mar 17 00:25:09 2017
 """
 
 from . import Network, mean_squared_error
+from . import save_model
 import numpy as np
 
 #Some tests
@@ -114,5 +115,8 @@ def test_XOR():
     
 if __name__=='__main__':
     #random_training_set()
-    test_AND()
-    #test_XOR()
+    net = test_AND()
+    #net = test_XOR()
+    
+    #Test saving method
+    save_model('test',net)

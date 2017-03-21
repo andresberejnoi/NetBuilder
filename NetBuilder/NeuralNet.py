@@ -163,7 +163,7 @@ class Network(object):
     #Set up a dictionary of activation functions to access them more easily
     functions = {'tanh':tanh,'sigmoid':sigmoid}
 
-    def __init__(self,topology=[2,5,5,1],learningRate=0.1, momentum=0.1, loadfile=None):
+    def __init__(self,topology=[2,5,5,1],learningRate=0.1, momentum=0.1, loadfile=None,name='Network'):
         '''
         topology: A Python list with integers indicating the shape of the network. 
                     i.e: [5,10,1]: this encodes a network of 3 layers (one input, 1 hidden, and 1 output). 
@@ -181,7 +181,11 @@ class Network(object):
             self.size = len(topology)-1                                             #The size of the network will be the number of weeight matrices between layers, instead of the number of layers itself
             self.learningRate = learningRate
             self.momentum = momentum
-            
+            self.name = name
+            self._hiddenActiv_fun_key = None
+            self._outActiv_fun_key = None
+            self.outActiv_fun = None
+            self.hiddenActiv_fun = None
                     
             # Initialize random weights, and create empty matrices to store the previous changes in weight (for momentum):
            
@@ -222,8 +226,8 @@ class Network(object):
 
         #-----------------------------------------------------
         # Initialize activation functions.
-        self.outActiv_fun = tanh
-        self.hiddenActiv_fun = tanh
+        self.set_outActivation_fun()
+        self.set_hiddenactivation_fun()
         self.Gradients = [None]*self.size
         
          
@@ -247,7 +251,7 @@ class Network(object):
     #
     def get_complexity(self):
         """
-        Returns the number of features or synapses present in the network.
+        Returns the number of features or synapses (connections) present in the network.
         """
         synapses = 0
         for mat in self.weights:
@@ -268,6 +272,18 @@ class Network(object):
         except:
             print("""Could not find layer {0} in network.\nNetwork has {1} layers.""".format(idx, self.size))
     
+    def _get_model(self):
+        """
+        Returns a dictionary of network parameters. This function is used when saving the network.
+        """
+        parameters = {'Name':self.name,
+                      'Size':self.size,
+                      'OutActiv':self._outActiv_fun_key,
+                      'HiddenActiv':self._hiddenActiv_fun_key,
+                      'LearningRate':self.learningRate,
+                      'Momentum':self.momentum}
+        
+        return parameters
     #--------------------------------------------------------------------------
     # Section below is for setters
     #
@@ -280,9 +296,11 @@ class Network(object):
         '''
         try:
             self.hiddenActiv_fun = self.functions[func]
+            self._hiddenActiv_fun_key = func
         except KeyError:
             message = """The function '{0}' is not available.\nPlease select one of the following functions:\n{1}""".format(func, ''.join(['-> '+fun+'\n' for fun in list(self.functions)]) )
             print(message)
+            raise
             #raise KeyError
         
     def set_outActivation_fun(self,func='tanh'):
@@ -294,9 +312,11 @@ class Network(object):
         '''
         try:
             self.outActiv_fun = self.functions[func]
+            self._outActiv_fun_key = func
         except:
             message = """The function '{0}' is not available.\nPlease select one of the following functions:\n{1}""".format(func, ''.join(['-> '+fun+'\n' for fun in list(self.functions)]) )
             print(message)
+            raise
             #raise KeyError
 
     #

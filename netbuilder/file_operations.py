@@ -4,10 +4,11 @@ Created on Mon Mar 20 11:20:11 2017
 
 @author: Andres Berejnoi
 """
+import numpy as np
 import yaml
 import os
 
-def load_model(weights_file, is_transpose = True, add_bias= True):
+def load_model(config_file, do_transpose=False):
         """
         Loads weights from a text file.
         It needs to be organized better. 
@@ -78,13 +79,22 @@ def save_outputs(output_file,Patterns, net):
     
     handler.close()
     
-def save_model(dirname,model,csv_mode=False):
+def save_model(net,directory='.',csv_mode=False):
     """
-    dirname: str; A folder named dirname will be created under the working directory and will contain network files.
+    directory: str; Directory where network save folder will be created.
     model: Network; the network to save to a file.
+    csv_mode: boolean; if True then save network weights as a csv file. Otherwise, weights are saved as numpy format *.npz
     """
-
+    net_folder_name = """{0}_Model""".format(net.name)
     #pass
+    initial_working_dir = os.getcwd()
+    print("Working directory when calling save:",initial_working_dir)
+    
+    #move to specified directory and create output folder
+    os.chdir(directory)
+    os.mkdir(net_folder_name)
+    os.chdir(net_folder_name)
+    output_path = os.getcwd()
     
     #Save weight
     try:
@@ -107,23 +117,26 @@ def save_model(dirname,model,csv_mode=False):
     except:
         print("Something went wrong when saving weights")
         raise
-    
+        
     #Extract other network parameters:
-    #hidden activation function
-    #output activation function
-    #name 
-    #topology
-    #learning rate
-    #momentum
-    #size
+        #hidden activation function
+        #output activation function
+        #name 
+        #topology
+        #learning rate
+        #momentum
+        #size
     parameters = net._get_model()
     parameters['WeightsFile'] = file_to_save    #adding the filename to the dictionary
     
-    with open("""network_{0}.cfg""".format(net.name), 'w') as f:
+    with open("""load.cfg""".format(net.name), 'w') as f:
         yaml.dump(data=parameters,stream=f)
     
     
+    print("Files saved successfully at location:",output_path)
     
+    #When everthing is done, go back to original working directory
+    os.chdir(initial_working_dir)
         
         
         

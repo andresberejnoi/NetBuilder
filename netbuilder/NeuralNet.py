@@ -230,9 +230,51 @@ class Network(object):
         self.set_hiddenactivation_fun()
         self.Gradients = [None]*self.size
         
-         
-    # Initializer helpers
     
+    
+    
+    def init(self,topology=[2,3,1],learningRate=0.01,momentum=0.1,name='Network',add_bias=True):
+        self.topology = topology
+        self.learningRate = learningRate
+        self.momentum = momentum
+        self.name = name
+        self._hiddenActiv_fun_key = 'tanh'
+        self._outActiv_fun_key = 'tanh'
+        self.output_activation = self.set_outActivation_fun(func=self._outActiv_fun_key)
+        self.hidden_activation = self.set_hiddenactivation_fun(func=self._hiddenActiv_fun_key)
+        
+        # Initialize random weights, and create empty matrices to store the previous changes in weight (for momentum):
+        if add_bias:
+            #self.weights = [np.random.normal(loc=0,scale=0.6,size=(topology[i]+1, topology[i+1])) for i in range(self.size)]              
+            self.weights = [np.random.normal(loc=0,
+                                             scale=0.6,
+                                             size=(topology[i]+1, topology[i+1]+1)) for i in range(self.size-1)] #we are only generating matrices for inital and hidden layers
+            #Create matrix for output layer
+            f_idx = self.size-1     #use this index for the final layer matrix below
+            self.weights.append(np.random.normal(loc=0,
+                                                 scale=0.6,
+                                                 size=(topology[f_idx]+1,topology[f_idx+1])))
+        else:
+            self.weights = [np.random.normal(loc=0,scale=0.6,size=(topology[i], topology[i])) for i in range(self.size)]
+
+        self.size = len(self.weights)           #The size of the network will be the number of weeight matrices between layers, instead of the number of layers itself
+        self.Gradients = [None] * self.size
+
+    # Initializer helpers
+    def _init_from_file(self,params,weights_dict):
+        self.name = params['name']
+        self.topology = params['topology']
+        self.learningRate = params['learningRate']
+        self.momentum = params['momentum']
+        self._outActiv_fun_key = params['output_activation']
+        self._hiddenActiv_fun_key = params['hidden_activation']
+        self.output_activation = self.set_outActivation_fun(func=self._outActiv_fun_key)
+        self.hidden_activation = self.set_hiddenactivation_fun(func=self._hiddenActiv_fun_key)
+        self.Gradients = [None]*self.size
+        
+        #unpack weights
+        self.weights = [weights_dict[layer_mat] for layer_mat in weights_dict]
+        self.size = len(self.weights)
     
     #--------------------------------------------------------------------------
     # Overloading Operators:
@@ -276,10 +318,11 @@ class Network(object):
         """
         Returns a dictionary of network parameters. This function is used when saving the network.
         """
-        parameters = {'Name':self.name,
-                      'Size':self.size,
-                      'OutActiv':self._outActiv_fun_key,
-                      'HiddenActiv':self._hiddenActiv_fun_key,
+        parameters = {'name':self.name,
+                      'size':self.size,
+                      'topology':self.topology,
+                      'outputActivation':self._outActiv_fun_key,
+                      'hiddenActivation':self._hiddenActiv_fun_key,
                       'LearningRate':self.learningRate,
                       'Momentum':self.momentum}
         

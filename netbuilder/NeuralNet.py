@@ -7,7 +7,7 @@
 # of that minima and converge 
 
 import numpy as np
-from . import _param_keys as keys
+import _param_keys as keys
 #import tools         # this is a python file where I will put some functions before I decide to include them here directly
 
 
@@ -319,8 +319,8 @@ class Network(object):
         """
         Returns a dictionary of network parameters. This function is used when saving the network.
         """
-        parameters = {keys.__nane:self.name,
-                      keys.__size:self.size,
+        parameters = {keys.__size:self.size,
+                      keys.__name:self.name,
                       keys.__topology:self.topology,
                       keys.__output_activation:self._outActiv_fun_key,
                       keys.__hidden_activation:self._hiddenActiv_fun_key,

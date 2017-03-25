@@ -7,7 +7,7 @@ Created on Fri Mar 17 00:25:09 2017
 """
 
 from . import Network, mean_squared_error
-from . import save_model
+from . import save_model,load_model
 import numpy as np
 
 #Some tests
@@ -121,3 +121,4 @@ if __name__=='__main__':
     
     #Test saving method
     save_model(net=net)
+    

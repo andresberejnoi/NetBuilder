@@ -7,6 +7,7 @@
 # of that minima and converge 
 
 import numpy as np
+from . import _param_keys as keys
 #import tools         # this is a python file where I will put some functions before I decide to include them here directly
 
 
@@ -262,12 +263,12 @@ class Network(object):
 
     # Initializer helpers
     def _init_from_file(self,params,weights_dict):
-        self.name = params['name']
-        self.topology = params['topology']
-        self.learningRate = params['learningRate']
-        self.momentum = params['momentum']
-        self._outActiv_fun_key = params['output_activation']
-        self._hiddenActiv_fun_key = params['hidden_activation']
+        self.name = params[keys.__nane]
+        self.topology = params[keys.__topology]
+        self.learningRate = params[keys.__learning_rate]
+        self.momentum = params[keys.__momentum]
+        self._outActiv_fun_key = params[keys.__output_activation]
+        self._hiddenActiv_fun_key = params[keys.__hidden_activation]
         self.output_activation = self.set_outActivation_fun(func=self._outActiv_fun_key)
         self.hidden_activation = self.set_hiddenactivation_fun(func=self._hiddenActiv_fun_key)
         self.Gradients = [None]*self.size
@@ -318,13 +319,13 @@ class Network(object):
         """
         Returns a dictionary of network parameters. This function is used when saving the network.
         """
-        parameters = {'name':self.name,
-                      'size':self.size,
-                      'topology':self.topology,
-                      'outputActivation':self._outActiv_fun_key,
-                      'hiddenActivation':self._hiddenActiv_fun_key,
-                      'LearningRate':self.learningRate,
-                      'Momentum':self.momentum}
+        parameters = {keys.__nane:self.name,
+                      keys.__size:self.size,
+                      keys.__topology:self.topology,
+                      keys.__output_activation:self._outActiv_fun_key,
+                      keys.__hidden_activation:self._hiddenActiv_fun_key,
+                      keys.__learning_rate:self.learningRate,
+                      keys.__momentum:self.momentum}
         
         return parameters
     #--------------------------------------------------------------------------

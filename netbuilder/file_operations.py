@@ -4,6 +4,8 @@ Created on Mon Mar 20 11:20:11 2017
 
 @author: Andres Berejnoi
 """
+from . import Network
+from . import _param_keys as keys
 import numpy as np
 import yaml
 import os
@@ -55,6 +57,10 @@ def load_model(directory,is_csv=False):
     """
     directory: str; folder path where network save files are stored
     """
+    #remember current directory and move to desired directory
+    start_dir = os.getcwd()
+    os.chdir(directory)
+    
     #look for configuration file
     config_file = 'load.cfg'    #I will look for a better way to automate this file name or make it accessible across the package
     with open(config_file,'r') as f:
@@ -66,7 +72,7 @@ def load_model(directory,is_csv=False):
     #hidden_activation = parameters['hiddenActivation']
     #output_activation = parameters['outputActivation']
     #size = parameters['size']
-    weights_file = parameters['weightsFile']
+    weights_file = parameters[keys.__weights_file]
     
     #open network weights
     weights_dict = None
@@ -74,7 +80,11 @@ def load_model(directory,is_csv=False):
         pass
     else:
         weights_dict = np.load(weights_file)
-        
+    
+    #Go back to starting directory
+    os.chdir(start_dir)
+    
+    #Create and initialize network
     net = Network()
     net._init_from_file(params=parameters,weights_dict=weights_dict)
     
@@ -127,7 +137,7 @@ def save_model(net,directory='.',csv_mode=False):
     try:
         os.mkdir(net_folder_name)
     except FileExistsError:
-        ...
+        raise
     os.chdir(net_folder_name)
     output_path = os.getcwd()
     

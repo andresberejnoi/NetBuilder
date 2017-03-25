@@ -271,11 +271,11 @@ class Network(object):
         self._hiddenActiv_fun_key = params[keys.__hidden_activation]
         self.output_activation = self.set_outActivation_fun(func=self._outActiv_fun_key)
         self.hidden_activation = self.set_hiddenactivation_fun(func=self._hiddenActiv_fun_key)
-        self.Gradients = [None]*self.size
         
         #unpack weights
         self.weights = [weights_dict[layer_mat] for layer_mat in weights_dict]
         self.size = len(self.weights)
+        self.Gradients = [None]*self.size
     
     #--------------------------------------------------------------------------
     # Overloading Operators:

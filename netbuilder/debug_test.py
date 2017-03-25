@@ -50,8 +50,8 @@ def test_AND():
                            [T]])
 
     
-    
-    net = Network(topology=[numIn,numOut])
+    net_name = 'AND'
+    net = Network(topology=[numIn,numOut],name=net_name)
     #net.set_outActivation_fun(func='sigmoid')
     net.train(input_set=input_set,
               target_set=target_set,
@@ -95,8 +95,9 @@ def test_XOR():
                            [F]])
 
     
-    
-    net = Network(topology=[numIn,5,numOut])
+    net_name = 'XOR'
+    net = Network()
+    net.init(topology=[numIn,5,numOut],name=net_name)
     net.train(input_set=input_set,
               target_set=target_set,
               batch_size=4,
@@ -119,4 +120,4 @@ if __name__=='__main__':
     #net = test_XOR()
     
     #Test saving method
-    save_model('test',net)
+    save_model(net=net)

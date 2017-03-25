@@ -7,7 +7,7 @@ Created on Wed Mar  8 17:12:11 2017
 
 from setuptools import setup, find_packages
 import os
-from NetBuilder import __version__
+from netbuilder import __version__
 
 def package_files(directory):
     paths = []

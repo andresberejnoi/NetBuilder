@@ -8,7 +8,7 @@ import numpy as np
 import yaml
 import os
 
-def load_model(config_file, do_transpose=False):
+def load_model_old(config_file, do_transpose=False):
         """
         Loads weights from a text file.
         It needs to be organized better. 
@@ -51,6 +51,35 @@ def load_model(config_file, do_transpose=False):
         handler.close()                 #closing file
         return topology, weights
 
+def load_model(directory,is_csv=False):
+    """
+    directory: str; folder path where network save files are stored
+    """
+    #look for configuration file
+    config_file = 'load.cfg'    #I will look for a better way to automate this file name or make it accessible across the package
+    with open(config_file,'r') as f:
+        parameters = yaml.load(f)
+    #name = parameters['name']
+    #topology = parameters['topology']
+    #learningRate = parameters['learningRate']
+    #momentum = parameters['momentum']
+    #hidden_activation = parameters['hiddenActivation']
+    #output_activation = parameters['outputActivation']
+    #size = parameters['size']
+    weights_file = parameters['weightsFile']
+    
+    #open network weights
+    weights_dict = None
+    if is_csv:
+        pass
+    else:
+        weights_dict = np.load(weights_file)
+        
+    net = Network()
+    net._init_from_file(params=parameters,weights_dict=weights_dict)
+    
+    return net
+
 def save_outputs(output_file,Patterns, net):
     """
     It takes patterns and performs feedforward passes on it, and the output is saved to a file.
@@ -59,6 +88,7 @@ def save_outputs(output_file,Patterns, net):
                 compatible with the network class at the moment.
     patterns: a list of patterns, or a str of the filename where the patterns should be read from
     
+    return: file of output folder
     """
     handler = open(output_file, 'wb')
     if type(Patterns) == str:
@@ -84,15 +114,20 @@ def save_model(net,directory='.',csv_mode=False):
     directory: str; Directory where network save folder will be created.
     model: Network; the network to save to a file.
     csv_mode: boolean; if True then save network weights as a csv file. Otherwise, weights are saved as numpy format *.npz
+    
+    return: str; the path to the output folder so that it can be loaded later
     """
-    net_folder_name = """{0}_Model""".format(net.name)
+    net_folder_name = """{0}_Model.1""".format(net.name)
     #pass
     initial_working_dir = os.getcwd()
     print("Working directory when calling save:",initial_working_dir)
     
     #move to specified directory and create output folder
     os.chdir(directory)
-    os.mkdir(net_folder_name)
+    try:
+        os.mkdir(net_folder_name)
+    except FileExistsError:
+        ...
     os.chdir(net_folder_name)
     output_path = os.getcwd()
     
@@ -127,7 +162,7 @@ def save_model(net,directory='.',csv_mode=False):
         #momentum
         #size
     parameters = net._get_model()
-    parameters['WeightsFile'] = file_to_save    #adding the filename to the dictionary
+    parameters['weightsFile'] = file_to_save    #adding the filename to the dictionary
     
     with open("""load.cfg""".format(net.name), 'w') as f:
         yaml.dump(data=parameters,stream=f)
@@ -137,6 +172,9 @@ def save_model(net,directory='.',csv_mode=False):
     
     #When everthing is done, go back to original working directory
     os.chdir(initial_working_dir)
+    
+    #return the path of output folder in case it is needed later
+    return output_path
         
         
         

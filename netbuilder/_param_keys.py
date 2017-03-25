@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Sat Mar 25 03:54:17 2017
@@ -7,6 +6,7 @@ Created on Sat Mar 25 03:54:17 2017
 """
 
 __weights_file = 'weights_file'
+__config_file = 'load.cfg'
 __topology = 'topology'
 __size = 'size'
 __output_activation = 'output_activation'

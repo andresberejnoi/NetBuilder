@@ -62,7 +62,7 @@ def load_model(directory,is_csv=False):
     os.chdir(directory)
     
     #look for configuration file
-    config_file = 'load.cfg'    #I will look for a better way to automate this file name or make it accessible across the package
+    config_file = keys.__config_file    #I will look for a better way to automate this file name or make it accessible across the package
     with open(config_file,'r') as f:
         parameters = yaml.load(f)
     #name = parameters['name']
@@ -172,9 +172,9 @@ def save_model(net,directory='.',csv_mode=False):
         #momentum
         #size
     parameters = net._get_model()
-    parameters['weightsFile'] = file_to_save    #adding the filename to the dictionary
+    parameters[keys.__weights_file] = file_to_save    #adding the filename to the dictionary
     
-    with open("""load.cfg""".format(net.name), 'w') as f:
+    with open(keys.__config_file, 'w') as f:
         yaml.dump(data=parameters,stream=f)
     
     

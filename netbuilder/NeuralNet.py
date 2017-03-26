@@ -263,12 +263,12 @@ class Network(object):
 
     # Initializer helpers
     def _init_from_file(self,params,weights_dict):
-        self.name = params[keys.__nane]
-        self.topology = params[keys.__topology]
-        self.learningRate = params[keys.__learning_rate]
-        self.momentum = params[keys.__momentum]
-        self._outActiv_fun_key = params[keys.__output_activation]
-        self._hiddenActiv_fun_key = params[keys.__hidden_activation]
+        self.name = params[keys._nane]
+        self.topology = params[keys._topology]
+        self.learningRate = params[keys._learning_rate]
+        self.momentum = params[keys._momentum]
+        self._outActiv_fun_key = params[keys._output_activation]
+        self._hiddenActiv_fun_key = params[keys._hidden_activation]
         self.output_activation = self.set_outActivation_fun(func=self._outActiv_fun_key)
         self.hidden_activation = self.set_hiddenactivation_fun(func=self._hiddenActiv_fun_key)
         
@@ -319,13 +319,13 @@ class Network(object):
         """
         Returns a dictionary of network parameters. This function is used when saving the network.
         """
-        parameters = {keys.__size:self.size,
-                      keys.__name:self.name,
-                      keys.__topology:self.topology,
-                      keys.__output_activation:self._outActiv_fun_key,
-                      keys.__hidden_activation:self._hiddenActiv_fun_key,
-                      keys.__learning_rate:self.learningRate,
-                      keys.__momentum:self.momentum}
+        parameters = {keys._topology:self.topology,
+                      keys._size:self.size,
+                      keys._name:self.name,
+                      keys._output_activation:self._outActiv_fun_key,
+                      keys._hidden_activation:self._hiddenActiv_fun_key,
+                      keys._learning_rate:self.learningRate,
+                      keys._momentum:self.momentum}
         
         return parameters
     #--------------------------------------------------------------------------

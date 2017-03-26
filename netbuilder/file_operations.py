@@ -5,7 +5,7 @@ Created on Mon Mar 20 11:20:11 2017
 @author: Andres Berejnoi
 """
 from . import Network
-from . import _param_keys as keys
+import _param_keys as keys
 import numpy as np
 import yaml
 import os
@@ -62,7 +62,7 @@ def load_model(directory,is_csv=False):
     os.chdir(directory)
     
     #look for configuration file
-    config_file = keys.__config_file    #I will look for a better way to automate this file name or make it accessible across the package
+    config_file = keys._config_file    #I will look for a better way to automate this file name or make it accessible across the package
     with open(config_file,'r') as f:
         parameters = yaml.load(f)
     #name = parameters['name']
@@ -72,7 +72,7 @@ def load_model(directory,is_csv=False):
     #hidden_activation = parameters['hiddenActivation']
     #output_activation = parameters['outputActivation']
     #size = parameters['size']
-    weights_file = parameters[keys.__weights_file]
+    weights_file = parameters[keys._weights_file]
     
     #open network weights
     weights_dict = None
@@ -172,9 +172,9 @@ def save_model(net,directory='.',csv_mode=False):
         #momentum
         #size
     parameters = net._get_model()
-    parameters[keys.__weights_file] = file_to_save    #adding the filename to the dictionary
+    parameters[keys._weights_file] = file_to_save    #adding the filename to the dictionary
     
-    with open(keys.__config_file, 'w') as f:
+    with open(keys._config_file, 'w') as f:
         yaml.dump(data=parameters,stream=f)
     
     

@@ -7,6 +7,7 @@ Created on Fri Mar 17 00:25:09 2017
 """
 
 from . import Network, mean_squared_error
+from . import tanh,sigmoid
 from . import save_model,load_model
 import numpy as np
 

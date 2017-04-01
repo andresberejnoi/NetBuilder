@@ -120,7 +120,11 @@ def save_model(net,directory='.',csv_mode=False):
     return output_path
         
 def _get_next_foldername_index(name_to_check,dir_path):
+    """
+    Finds folders with name_to_check in them in dir_path and extracts which one has the hgihest index
     
+    return: if there are no name matches, it returns the string '1'. Otherwise, it returns str(highest index found + 1)
+    """
     dir_content = os.listdir(dir_path)
     dir_name_indexes = [int(item.split('.')[-1]) for item in dir_content if os.path.isdir(item) and name_to_check in item]    #extracting the counter in the folder name and then we find the maximum
     

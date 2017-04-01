@@ -7,8 +7,8 @@
 # of that minima and converge 
 
 import numpy as np
-import _param_keys as keys
-from activations import *
+import _param_keys as keys #import keys for saving and loading network from file
+from activations import *  #import activation functions defined in the file, such as tanh and sigmoid
 #import tools         # this is a python file where I will put some functions before I decide to include them here directly
 
     
@@ -41,14 +41,16 @@ class Network(object):
     #Set up a dictionary of activation functions to access them more easily
 
     def __init__(self):
+        """Setting names for instance variables"""
         self.topology = None
         self.learningRate = None
         self.momentum = None
         self.name = None 
-        self._hiddenActiv_fun_key = None
-        self._outActiv_fun_key = None
-        self.output_activation = None
-        self.hidden_activation = None
+        self.size = None
+        #self._hiddenActiv_fun_key = None
+        #self._outActiv_fun_key = None
+        #self.output_activation = None
+        #self.hidden_activation = None
     
     #----------------------------------------------------------------------------------
     # Initializers
@@ -126,7 +128,7 @@ class Network(object):
     #---------------------------------------------------------------------------
     # Getters
     #
-    def get_complexity(self):
+    def get_num_connections(self):
         """
         Returns the number of features or synapses (connections) present in the network.
         """
@@ -139,7 +141,7 @@ class Network(object):
         """Returns the number of nodes in the network (includes input and output nodes)"""
         return sum(self.topology)
 
-    def get_connection_layer(self, idx):
+    def get_connection_mat(self, idx):
         """
         idx: int; the index corresponding to a layer in self.weights.
         returns: The connection weights for the layer requested (self.weights[idx])
@@ -162,11 +164,8 @@ class Network(object):
                       keys._momentum:self.momentum}
         
         return parameters
-    #--------------------------------------------------------------------------
-    # Section below is for setters
-    #
     
-    #
+    #--------------------------------------------------------------------------
     # Functionality of the network
     #              
                 
@@ -360,29 +359,29 @@ class Network(object):
                     break
                     
                     
-            else:       #here we do full batch
-                mini_inputs = input_set
-                mini_targets = target_set
-                for epoch in range(epochs+1):
-                    #Feed Network with inputs can compute error
-                    output = self.feedforward(mini_inputs,hidden_activation=hidden_activation,output_activation=output_activation)
-                    error = error_func(target=mini_targets,actual=output)
-                    #print('Error:',error,'Epoch:',i)
-                    
-                    #compute the error
-                    self.backprop(input_samples=mini_inputs,
-                                          target=mini_targets,
-                                          error_func=error_func,
-                                          hidden_activation=hidden_activation,
-                                          output_activation=output_activation,
-                                          output=output)
-                    
-                    #if epoch % (epochs/print_rate) == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
-                    if epoch % print_rate == 0:
-                        self.print_training_state(epoch,error)
-                    if error <= threshold_error:                                        # when the error of the network is less than the threshold, the traning can stop
-                        self.print_training_state(epoch,error, finished=True)
-                        break
+        else:       #here we do full batch
+            mini_inputs = input_set
+            mini_targets = target_set
+            for epoch in range(epochs+1):
+                #Feed Network with inputs can compute error
+                output = self.feedforward(mini_inputs,hidden_activation=hidden_activation,output_activation=output_activation)
+                error = error_func(target=mini_targets,actual=output)
+                #print('Error:',error,'Epoch:',i)
+                
+                #compute the error
+                self.backprop(input_samples=mini_inputs,
+                                      target=mini_targets,
+                                      error_func=error_func,
+                                      hidden_activation=hidden_activation,
+                                      output_activation=output_activation,
+                                      output=output)
+                
+                #if epoch % (epochs/print_rate) == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
+                if epoch % print_rate == 0:
+                    self.print_training_state(epoch,error)
+                if error <= threshold_error:                                        # when the error of the network is less than the threshold, the traning can stop
+                    self.print_training_state(epoch,error, finished=True)
+                    break
         
     # Information printers
     def print_training_state(self,epoch,error,finished=False):

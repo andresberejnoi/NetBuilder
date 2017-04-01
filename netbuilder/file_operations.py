@@ -45,6 +45,8 @@ def load_model(directory,is_csv=False):
     net = Network()
     net._init_from_file(params=parameters,weights_dict=weights_dict)
     
+    print("Model {0} loaded correctly".format(net.name))
+    
     return net
 
     
@@ -65,9 +67,6 @@ def save_model(net,directory='.',csv_mode=False):
     
     #move to specified directory and create output folder
     os.chdir(directory)
-    
-    #Check if the folder already exists
-    ...
     
     try:
         os.mkdir(net_folder_name)

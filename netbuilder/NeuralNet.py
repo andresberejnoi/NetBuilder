@@ -84,6 +84,7 @@ class Network(object):
                                                  scale=0.6,
                                                  size=(topology[f_idx]+1,topology[f_idx+1])))
         else:
+            raise NotImplemented("Currently the network only works when bias nodes are used")
             self.weights = [np.random.normal(loc=0,scale=0.6,size=(topology[i], topology[i])) for i in range(self.size)]
 
         self.Gradients = [None] * self.size
@@ -144,7 +145,7 @@ class Network(object):
     
     def _get_model(self):
         """
-        Returns a dictionary of network parameters. This function is used when saving the network.
+        Returns a dictionary of network parameters that can be used for a configuration file. This function is used when saving the network.
         """
         parameters = {keys._topology:self.topology,
                       keys._size:self.size,
@@ -158,38 +159,7 @@ class Network(object):
     #--------------------------------------------------------------------------
     # Section below is for setters
     #
-    def set_hiddenactivation_fun(self,func='tanh'):
-        '''
-        Changes the hidden activation function for a different one, as long as
-        the desired function is available in the dictionary self.functions
-            
-        func: a string with the name of the desired function (it will be the key for the dictionary)
-        '''
-        try:
-            self.hiddenActiv_fun = self.functions[func]
-            self._hiddenActiv_fun_key = func
-        except KeyError:
-            message = """The function '{0}' is not available.\nPlease select one of the following functions:\n{1}""".format(func, ''.join(['-> '+fun+'\n' for fun in list(self.functions)]) )
-            print(message)
-            raise
-            #raise KeyError
-        
-    def set_outActivation_fun(self,func='tanh'):
-        '''
-        Changes the output activation function for a different one, as long as
-        the desired function is available in the dictionary self.functions
-            
-        func: a string with the name of the desired function (it will be the key for the dictionary)
-        '''
-        try:
-            self.outActiv_fun = self.functions[func]
-            self._outActiv_fun_key = func
-        except:
-            message = """The function '{0}' is not available.\nPlease select one of the following functions:\n{1}""".format(func, ''.join(['-> '+fun+'\n' for fun in list(self.functions)]) )
-            print(message)
-            raise
-            #raise KeyError
-
+    
     #
     # Functionality of the network
     #              
@@ -241,56 +211,6 @@ class Network(object):
         for W in self.weights[::-1]:                # We traverse backwards through the weight matrices
             I = np.dot(W,I)[:-1]                #The dot product of the two numpy arrays will have one extra element, corresponding to the bias node, but we do not need it, so we slice it off
         return I
-            
-    def backprop_old(self,inputs,target, batch=False):
-        """
-        Backpropagation (online)
-        inputs: a vector of inputs for the neural network. It corresponds to one training example (in online mode)
-        target: a vector of expected values correspoding to the inputs vector
-        batch: boolean flag. Indicates whether to use batch or online training. BATCH NOT IMPLEMENTED
-        """
-        #Gradients = [None]*self.size                        # it will have the same size as self.weights
-        
-        output = self.feedforward(inputs)                                       # performs forward propagation of the inputs 
-        
-        # Compute the error for the network at this particular example
-        error = 0.5 * np.sum((target-output)**2)
-        delta = None
-        gradients = None 
-        
-        for i in range(self.size):
-            back_index =self.size-1 -i                  # This will be used for the items to be accessed backwards            
-            if i==0:
-                # First, we calculate the delta for the output layer by taking the partial derivatives of the error function and more
-                delta = (output-target) * self.outActiv_fun(self.netIns[back_index], derivative=True)
-                gradients = np.outer(self.netOuts[back_index], delta)
-                self.Gradients[back_index] = gradients
-
-            else:
-                # The calculation for the hidden deltas is slightly different than for the output neurons
-                W = self.weights[back_index+1]                
-                delta = np.dot(W,delta)[:-1] * self.hiddenActiv_fun(self.netIns[back_index], derivative=True)              #we slice off the delta value corresponding to the bias node
-                #delta = np.dot(delta, W) * self.hiddenActiv_fun(self.netOuts[back_index], derivative=True)
-                gradients = np.outer(self.netOuts[back_index], delta)           # the transpose is necessary to get a matrix of the correct shape. This can be avoided by changing the way the matrix is represented
-                
-                self.Gradients[back_index] = gradients
-        
-        
-        if not batch:
-            # when we want online training, weights are updated on the flight. 
-            # otherwise, we just return the error
-            # Update the weights on every training sample, because this is online training
-            for i in range(self.size):
-                delta_weight = self.learningRate * self.Gradients[i]
-                self.weights[i] -= delta_weight + self.momentum*self.last_change[i]
-                self.last_change[i] = self.Gradients[i]
-        else:
-            # This clause is for batch training.
-            # We will iterate through the cumulative gradients 
-            for k in range(self.size):
-                self.batch_gradients[k] += self.Gradients[k]           
-        return error
- 
     
     def _compute_error(self,expected_out,actual_out,error_func):
         """
@@ -311,7 +231,7 @@ class Network(object):
             delta_weight = self.learningRate * gradients[k]
             full_change = delta_weight + self.momentum*self.last_change[k]
             self.weights[k] -= full_change
-            self.last_change[k] = np.copy(gradients[k])
+            self.last_change[k] = 1*gradients[k] #copy gradient mat
         
                 
     def backprop(self, input_samples,target,output, error_func, batch_mode=True,hidden_activation=tanh,output_activation=tanh):

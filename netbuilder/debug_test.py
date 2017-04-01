@@ -52,7 +52,8 @@ def test_AND():
 
     
     net_name = 'AND'
-    net = Network(topology=[numIn,numOut],name=net_name)
+    net = Network()
+    net.init(topology=[numIn,numOut],name=net_name)
     #net.set_outActivation_fun(func='sigmoid')
     net.train(input_set=input_set,
               target_set=target_set,

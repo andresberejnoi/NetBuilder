@@ -8,6 +8,7 @@
 
 import numpy as np
 import _param_keys as keys
+from activations import *
 #import tools         # this is a python file where I will put some functions before I decide to include them here directly
 
     
@@ -38,9 +39,18 @@ class Network(object):
     #np.random.seed()                       # start the random seed before using it
     #np.random.random()
     #Set up a dictionary of activation functions to access them more easily
-    functions = {'tanh':tanh,'sigmoid':sigmoid}
 
-    def __init__(self,topology=[2,5,5,1],learningRate=0.1, momentum=0.1, loadfile=None,name='Network'):
+    def __init__(self):
+        self.topology = None
+        self.learningRate = None
+        self.momentum = None
+        self.name = None 
+        self._hiddenActiv_fun_key = None
+        self._outActiv_fun_key = None
+        self.output_activation = None
+        self.hidden_activation = None
+    
+    def init(self,topology=[2,3,1],learningRate=0.01,momentum=0.1,name='Network',add_bias=True):
         '''
         topology: A Python list with integers indicating the shape of the network. 
                     i.e: [5,10,1]: this encodes a network of 3 layers (one input, 1 hidden, and 1 output). 
@@ -52,73 +62,15 @@ class Network(object):
         momentum: A float, also used during the training process. It is related to how much the previous changes
                         affect the new ones.
         '''
-        
-        if loadfile is None:                    # this will be used when the network parameters are provided instead of a file to read from
-            self.topology = topology
-            self.size = len(topology)-1                                             #The size of the network will be the number of weeight matrices between layers, instead of the number of layers itself
-            self.learningRate = learningRate
-            self.momentum = momentum
-            self.name = name
-            self._hiddenActiv_fun_key = None
-            self._outActiv_fun_key = None
-            self.outActiv_fun = None
-            self.hiddenActiv_fun = None
-                    
-            # Initialize random weights, and create empty matrices to store the previous changes in weight (for momentum):
-           
-            #self.weights = [np.random.normal(loc=0,scale=0.6,size=(topology[i]+1, topology[i+1])) for i in range(self.size)]              
-            self.weights = [np.random.normal(loc=0,
-                                             scale=0.6,
-                                             size=(topology[i]+1, topology[i+1]+1)) for i in range(self.size-1)] #we are only generating matrices for inital and hidden layers
-            #Create matrix for output layer
-            f_idx = self.size-1     #use this index for the final layer matrix below
-            self.weights.append(np.random.normal(loc=0,
-                                                 scale=0.6,
-                                                 size=(topology[f_idx]+1,topology[f_idx+1])
-                                                 )
-                                )
-
-        else:
-            #when the file is provided:
-            if '.csv' in loadfile:
-                self.topology, self.weights = read_weights(loadfile)
-            else:
-                while True:
-                    try:
-                        self.weights = np.load(loadfile)
-                        break
-                        #self.size = len(self.weights)
-                    except FileNotFoundError:
-                        print("""File '{0}' was not found.""".format(loadfile))
-                        loadfile = input("Please enter an available file (to cancel type 'break'): ")
-                        if loadfile.lower() == 'break':
-                            raise NetworkError("Could not initialize the network")
-                self.topology = [(M.shape[0]-1) for M in self.weights]
-                self.topology.append(self.weights[-1].shape[1]) 
-            
-            # We set up the other varibales
-            self.size = len(self.weights)
-            self.learningRate = learningRate
-            self.momentum = momentum
-
-        #-----------------------------------------------------
-        # Initialize activation functions.
-        self.set_outActivation_fun()
-        self.set_hiddenactivation_fun()
-        self.Gradients = [None]*self.size
-        
-    
-    
-    
-    def init(self,topology=[2,3,1],learningRate=0.01,momentum=0.1,name='Network',add_bias=True):
         self.topology = topology
         self.learningRate = learningRate
         self.momentum = momentum
         self.name = name
-        self._hiddenActiv_fun_key = 'tanh'
-        self._outActiv_fun_key = 'tanh'
-        self.output_activation = self.set_outActivation_fun(func=self._outActiv_fun_key)
-        self.hidden_activation = self.set_hiddenactivation_fun(func=self._hiddenActiv_fun_key)
+        self.size = len(self.topology)-1           #The size of the network will be the number of weeight matrices between layers, instead of the number of layers itself
+        #self._hiddenActiv_fun_key = 'tanh'
+        #self._outActiv_fun_key = 'tanh'
+        #self.output_activation = self.set_outActivation_fun(func=self._outActiv_fun_key)
+        #self.hidden_activation = self.set_hiddenactivation_fun(func=self._hiddenActiv_fun_key)
         
         # Initialize random weights, and create empty matrices to store the previous changes in weight (for momentum):
         if add_bias:
@@ -134,7 +86,6 @@ class Network(object):
         else:
             self.weights = [np.random.normal(loc=0,scale=0.6,size=(topology[i], topology[i])) for i in range(self.size)]
 
-        self.size = len(self.weights)           #The size of the network will be the number of weeight matrices between layers, instead of the number of layers itself
         self.Gradients = [None] * self.size
 
     # Initializer helpers
@@ -143,10 +94,10 @@ class Network(object):
         self.topology = params[keys._topology]
         self.learningRate = params[keys._learning_rate]
         self.momentum = params[keys._momentum]
-        self._outActiv_fun_key = params[keys._output_activation]
-        self._hiddenActiv_fun_key = params[keys._hidden_activation]
-        self.output_activation = self.set_outActivation_fun(func=self._outActiv_fun_key)
-        self.hidden_activation = self.set_hiddenactivation_fun(func=self._hiddenActiv_fun_key)
+        #self._outActiv_fun_key = params[keys._output_activation]
+        #self._hiddenActiv_fun_key = params[keys._hidden_activation]
+        #self.output_activation = self.set_outActivation_fun(func=self._outActiv_fun_key)
+        #self.hidden_activation = self.set_hiddenactivation_fun(func=self._hiddenActiv_fun_key)
         
         #unpack weights
         self.weights = [weights_dict[layer_mat] for layer_mat in weights_dict]
@@ -198,8 +149,8 @@ class Network(object):
         parameters = {keys._topology:self.topology,
                       keys._size:self.size,
                       keys._name:self.name,
-                      keys._output_activation:self._outActiv_fun_key,
-                      keys._hidden_activation:self._hiddenActiv_fun_key,
+                      #keys._output_activation:self._outActiv_fun_key,
+                      #keys._hidden_activation:self._hiddenActiv_fun_key,
                       keys._learning_rate:self.learningRate,
                       keys._momentum:self.momentum}
         
@@ -241,42 +192,9 @@ class Network(object):
 
     #
     # Functionality of the network
-    #
-    
-    def save(self, filename, transpose=False, keep_bias = False):
-        """
-        Saves the weights of the network stored in self.weights using numpy 'save' method.
-        
-        filename: a string or file object where the information will be saved 
-        Transpose: boolean; used when saving to a csv file. It tells whether the matrix should be saved in its
-                    current form, or its transpose
-        """
-        if '.csv' in filename:      # if the file weights are to be saved in csv format:
-            handler = open(filename, 'wb')       # opening in byte write mode to match with numpy's opening mode
-            np.savetxt(handler,np.array([self.topology]), delimiter=',')        #saves the header for the file         
-            
-            if transpose:
-                for Mat in self.weights:
-                    # iterate through every weight matrix and save it to file
-                    if keep_bias is False:          # when the user does not want to include the bias vector weight into the weights file
-                        Mat = Mat[:-1]              # the last row corresponds to the bias weight vector, so we slice it off
-                    np.savetxt(handler, Mat.transpose(), delimiter=',')
-            else:
-                for Mat in self.weights:
-                    if keep_bias is False:
-                        Mat = Mat[:-1]
-                    np.savetxt(handler, Mat, delimiter=',')
-            print("""file saved successfully as {0}""".format(filename))
-            handler.close()
-        else:
-            try:
-                np.save(filename,self.weights)
-                print("Weights were saved successfully")
-            except:
-                print("There was an error saving the weights. Try using .csv format.")
+    #              
                 
-                
-    def feedforward(self,inputs):
+    def feedforward(self,inputs,hidden_activation=tanh,output_activation=tanh):
         """
         Performs the feedforward propagation of the inputs through the layers.
         inputs: numpy array of shape [number of samples x number of features per sample]; inputs to the first layer
@@ -287,6 +205,7 @@ class Network(object):
         
         input_samples=inputs.shape[0]
         
+        #Currently, this will cause a crash when the network was created without bias nodes
         I = np.concatenate((inputs,np.ones((input_samples,1))),axis=1)                # adds the bias input of 1
         self.netOuts.append(I)                                              # keeping track of the outputs of every layer
         
@@ -299,15 +218,15 @@ class Network(object):
             
             #if we are on the last layer, we use the output activation function
             if idx == self.size -1:
-                I = self.outActiv_fun(I)
+                I = output_activation(I)
             #otherwise, we use the activation for the hidden layers
             else:
-                I = self.hiddenActiv_fun(I)
+                I = hidden_activation(I)
                 #I = np.concatenate((I,np.ones((I.shape[0],1))), axis=1)
                 self.netOuts.append(I)
         
-        self.out = I
-        return self.out
+        #self.out = I
+        return I
 
         
     def reversed_feed(self, outIn):
@@ -395,7 +314,7 @@ class Network(object):
             self.last_change[k] = np.copy(gradients[k])
         
                 
-    def backprop(self, input_samples,target,output, error_func, batch_mode=True):
+    def backprop(self, input_samples,target,output, error_func, batch_mode=True,hidden_activation=tanh,output_activation=tanh):
         """
         Backpropagation
         input_samples: numpy array of all samples in a batch
@@ -407,31 +326,31 @@ class Network(object):
         """
         #Define placeholder variables
         delta = None
-        gradients = None
+        gradient_mat = None
         
         #Compute gradients and deltas
         for i in range(self.size):
             back_index =self.size-1 -i                  # This will be used for the items to be accessed backwards  
             if i!=0:
                 W_trans = self.weights[back_index+1].T        #we use the transpose of the weights in the current layer
-                d_activ = self.hiddenActiv_fun(self.netIns[back_index],derivative=True)
+                d_activ = hidden_activation(self.netIns[back_index],derivative=True)
                 d_error = np.dot(delta, W_trans)
                 delta = d_error * d_activ
-                gradients = np.dot(self.netOuts[back_index].T , delta)
-                self.Gradients[back_index] = gradients
+                gradient_mat = np.dot(self.netOuts[back_index].T , delta)
+                self.Gradients[back_index] = gradient_mat
             else:
                 #Herewe calculate gradients for final layer
-                d_activ = self.outActiv_fun(self.netIns[back_index],derivative=True)
+                d_activ = output_activation(self.netIns[back_index],derivative=True)
                 d_error = error_func(target,output,derivative=True)
                 delta = d_error * d_activ
-                gradients = np.dot(self.netOuts[back_index].T , delta)
-                self.Gradients[back_index] = gradients
+                gradient_mat = np.dot(self.netOuts[back_index].T , delta)
+                self.Gradients[back_index] = gradient_mat
         # Update weights using the computed gradients
         for k in range(self.size):
             delta_weight = self.learningRate * self.Gradients[k]
             full_change = delta_weight + self.momentum*self.last_change[k]
             self.weights[k] -= full_change
-            self.last_change[k] = np.copy(self.Gradients[k])
+            self.last_change[k] = 1*self.Gradients[k]
        
     def TrainEpochOnline(self,input_set,target_set):
         """
@@ -447,7 +366,16 @@ class Network(object):
                 
         return epoch_error
         
-    def train(self,input_set,target_set,epochs=5000,threshold_error=1E-10, batch_mode=True,batch_size=0, error_func=mean_squared_error,print_rate=100):
+    def train(self,input_set,
+              target_set,
+              epochs=5000,
+              threshold_error=1E-10,
+              batch_mode=True,
+              batch_size=0,
+              error_func=mean_squared_error,
+              hidden_activation=tanh,
+              output_activation=tanh,
+              print_rate=100):
         """
         Trains the network for the specified number of epochs.
         input_set: numpy array of shape [number of samples x number of features per sample]
@@ -476,7 +404,7 @@ class Network(object):
                 try:
                     assert(batch_size <= num_samples)
                 except AssertionError:
-                    print ("""Batch size '{0}' is bigger than number of samples available '{1}'""".format(batch_size,num_samples))
+                    print ("""Batch size '{0}' is bigger than number of samples available: '{1}'""".format(batch_size,num_samples))
                     raise
                 
                 #Define number of iterations per epoch:
@@ -492,22 +420,23 @@ class Network(object):
                         mini_inputs = input_set[start_idx:end_idx]
                         mini_targets = target_set[start_idx:end_idx]
                         
-                        #Feed Network with inputs can compute error
-                        output = self.feedforward(mini_inputs)
+                        #Feed Network with inputs to compute error
+                        output = self.feedforward(mini_inputs,hidden_activation=hidden_activation,output_activation=output_activation)
                         error += error_func(target=mini_targets,actual=output)
                         #print('Error:',error,'Epoch:',epoch,'iter:',i)
                         #compute the error
                         self.backprop(input_samples=mini_inputs,
                                               target=mini_targets,
                                               error_func=error_func,
+                                              hidden_activation=hidden_activation,
+                                              output_activation=output_activation,
                                               output=output)
-                        #TODO: Right now, I assume that the input data is diviible exactly by batch_size, with no left over samples
-                        # but I could also add a check to roll the indexes to the beginning
+                        
                         #TODO: Read the mini batch data from some file or generator. The current implementation loads the whole batch in memory and then
                         # takes mini batches from there, but this makes the mini batch method pointless (sort of)
                         
                         #Update indexes
-                        if end_idx < num_samples:       #increase the indexes while there is more data 
+                        if end_idx < num_samples:       #increase indexes while there is more data 
                             start_idx = end_idx
                             if (num_samples-end_idx) < batch_size:
                                 end_idx = num_samples
@@ -529,7 +458,7 @@ class Network(object):
                 mini_targets = target_set
                 for epoch in range(epochs+1):
                     #Feed Network with inputs can compute error
-                    output = self.feedforward(mini_inputs)
+                    output = self.feedforward(mini_inputs,hidden_activation=hidden_activation,output_activation=output_activation)
                     error = error_func(target=mini_targets,actual=output)
                     #print('Error:',error,'Epoch:',i)
                     
@@ -537,6 +466,8 @@ class Network(object):
                     self.backprop(input_samples=mini_inputs,
                                           target=mini_targets,
                                           error_func=error_func,
+                                          hidden_activation=hidden_activation,
+                                          output_activation=output_activation,
                                           output=output)
                     
                     #if epoch % (epochs/print_rate) == 0:                                            # Every certain number of iterations, information about the network will be printed. Increase the denominator for more printing points, or reduce it to print less frequently
@@ -546,6 +477,7 @@ class Network(object):
                         self.print_training_state(epoch,error, finished=True)
                         break
         else:
+            raise NotImplementedError
             for epoch in range(epochs+1):
                 #compute error
                 error = self.TrainEpochOnline(input_set=input_set,

@@ -38,10 +38,10 @@ setup(name='netbuilder',
       license='MIT',
       description=desc,
       long_description=long_desc,
-      keywords=['Neural Network', 'machine learning', 'AI', 'artificial intelligence'],
+      keywords=['Neural Network', 'machine learning', 'AI', 'artificial intelligence', 'MLP'],
       install_requires=['numpy>=1.12','PyYAML>=3.12'],
       classifiers=['Programming Language :: Python',
                    'Programming Language :: Python :: 3',
                    'Development Status :: 3 - Alpha',
-                   'Operating System :: OS Independent']
+                   'Operating System :: Linux']
       )

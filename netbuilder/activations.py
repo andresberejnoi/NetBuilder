@@ -4,6 +4,7 @@ Created on Sat Mar 25 21:18:59 2017
 
 @author: andres
 """
+import numpy as np
 
 def sigmoid(x, derivative = False):
     """

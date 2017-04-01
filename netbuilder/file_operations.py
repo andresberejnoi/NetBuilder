@@ -10,121 +10,6 @@ import numpy as np
 import yaml
 import os
 
-def read_weights_old(weights_file, is_transpose = True, add_bias= True):
-        """
-        Loads weights from a text file.
-        It needs to be organized better. 
-        """
-        from itertools import islice       
-        handler = open(weights_file, 'rb')                  # opening file in binary read mode
-
-        info_line = np.genfromtxt(islice(handler,0,1), delimiter=',')           # the info line is read and stored as an ndarray, but it has trailing 'nan' values from the trailing commas
-        topology = info_line[np.logical_not(np.isnan(info_line) ) ]             # removes the trailing commas
-        topology = topology.astype(int)         # converting the array values into integers 
-        
-        #Now we read the weights based on the parameter 'is_transpose'
-        weights = []
-        if is_transpose is False:
-            # if is_transpose is false, then we read each matrix as rows=nodes in current layer,
-            # and columns = nodes in following layer. If is_transpose is true, then the opposite is done
-            for i in range(len(topology)-1):
-                read_until_row = int(topology[i])
-                M = np.genfromtxt(islice(handler, read_until_row), delimiter=',', usecols = range(int(topology[i+1]) ) )
-                M = np.atleast_2d(M)
-                weights.append(M)
-        else:
-            # we go here when is_transpose is true
-            for i in range(len(topology) - 1):
-                read_until_row = int(topology[i+1])                 # Determines until what row the file should be sliced
-                M = np.genfromtxt(islice(handler, read_until_row), delimiter=',', usecols = range(int(topology[i])))
-                M = np.atleast_2d(M)            # this ensures that the resulting vector will always be a 2D matrix (if it is a single row, then the shape will be something like (1,20) for example.)
-                weights.append(M)                
-                # The network loads matrices as (nodes in current layer X nodes in next layer),
-                # therefore, after reading the file, we need to store matrices as their transpose forms:
-                
-            weights = [Mat.transpose() for Mat in weights]
-        
-        if add_bias is True:
-            '''Add bias'''
-            for k in range(len(weights)):
-                bias_row = np.random.normal(scale=0.1, size=(1,topology[k+1]))          # creates a row of random values and the correct size
-                weights[k] = np.vstack([weights[k], bias_row])                             # appends a new row to the weights file
-                
-        handler.close()                 #closing file
-        return topology, weights
-
-def save_outputs_old(output_file,Patterns, net):
-    """
-    It takes patterns and performs feedforward passes on it, and the output is saved to a file.
-    
-    output_file: a string; this is how the output file will be named. It should be a .csv file to be
-                compatible with the network class at the moment.
-    patterns: a list of patterns, or a str of the filename where the patterns should be read from
-    
-    """
-    handler = open(output_file, 'wb')
-    if type(Patterns) == str:
-        # if the value provided for patterns is a str, the function will attempt to open it as a 
-        pattern_file = open(Patterns, 'r')             # if the file does not exit, the exception FileNotFoundError will be raised
-        
-        for line in pattern_file:
-            pattern = [float(num) for num in line.rstrip('\n').split(',')]
-            out = np.atleast_2d(net.feedforward(pattern))          # computes the output
-            np.savetxt(handler, out, delimiter=',')     # output is saved to file
-        pattern_file.close()
-    else:
-        
-        for pattern in Patterns:
-            out = np.atleast_2d(net.feedforward(pattern))
-            print(out.shape)
-            np.savetxt(handler, out, delimiter=',')
-    
-    handler.close()
-
-
-def load_model_old(config_file, do_transpose=False):
-        """
-        Loads weights from a text file.
-        It needs to be organized better. 
-        """
-        from itertools import islice       
-        handler = open(weights_file, 'rb')                  # opening file in binary read mode
-
-        info_line = np.genfromtxt(islice(handler,0,1), delimiter=',')           # the info line is read and stored as an ndarray, but it has trailing 'nan' values from the trailing commas
-        topology = info_line[np.logical_not(np.isnan(info_line) ) ]             # removes the trailing commas
-        topology = topology.astype(int)         # converting the array values into integers 
-        
-        #Now we read the weights based on the parameter 'is_transpose'
-        weights = []
-        if is_transpose is False:
-            # if is_transpose is false, then we read each matrix as rows=nodes in current layer,
-            # and columns = nodes in following layer. If is_transpose is true, then the opposite is done
-            for i in range(len(topology)-1):
-                read_until_row = int(topology[i])
-                M = np.genfromtxt(islice(handler, read_until_row), delimiter=',', usecols = range(int(topology[i+1]) ) )
-                M = np.atleast_2d(M)
-                weights.append(M)
-        else:
-            # we go here when is_transpose is true
-            for i in range(len(topology) - 1):
-                read_until_row = int(topology[i+1])                 # Determines until what row the file should be sliced
-                M = np.genfromtxt(islice(handler, read_until_row), delimiter=',', usecols = range(int(topology[i])))
-                M = np.atleast_2d(M)            # this ensures that the resulting vector will always be a 2D matrix (if it is a single row, then the shape will be something like (1,20) for example.)
-                weights.append(M)                
-                # The network loads matrices as (nodes in current layer X nodes in next layer),
-                # therefore, after reading the file, we need to store matrices as their transpose forms:
-                
-            weights = [Mat.transpose() for Mat in weights]
-        
-        if add_bias is True:
-            '''Add bias'''
-            for k in range(len(weights)):
-                bias_row = np.random.normal(scale=0.1, size=(1,topology[k+1]))          # creates a row of random values and the correct size
-                weights[k] = np.vstack([weights[k], bias_row])                             # appends a new row to the weights file
-                
-        handler.close()                 #closing file
-        return topology, weights
-
 def load_model(directory,is_csv=False):
     """
     directory: str; folder path where network save files are stored
@@ -162,34 +47,6 @@ def load_model(directory,is_csv=False):
     
     return net
 
-def save_outputs_old(output_file,Patterns, net):
-    """
-    It takes patterns and performs feedforward passes on it, and the output is saved to a file.
-    
-    output_file: a string; this is how the output file will be named. It should be a .csv file to be
-                compatible with the network class at the moment.
-    patterns: a list of patterns, or a str of the filename where the patterns should be read from
-    
-    return: file of output folder
-    """
-    handler = open(output_file, 'wb')
-    if type(Patterns) == str:
-        # if the value provided for patterns is a str, the function will attempt to open it as a 
-        pattern_file = open(Patterns, 'r')             # if the file does not exit, the exception FileNotFoundError will be raised
-        
-        for line in pattern_file:
-            pattern = [float(num) for num in line.rstrip('\n').split(',')]
-            out = np.atleast_2d(net.feedforward(pattern))          # computes the output
-            np.savetxt(handler, out, delimiter=',')     # output is saved to file
-        pattern_file.close()
-    else:
-        
-        for pattern in Patterns:
-            out = np.atleast_2d(net.feedforward(pattern))
-            print(out.shape)
-            np.savetxt(handler, out, delimiter=',')
-    
-    handler.close()
     
 def save_model(net,directory='.',csv_mode=False):
     """
@@ -199,13 +56,19 @@ def save_model(net,directory='.',csv_mode=False):
     
     return: str; the path to the output folder so that it can be loaded later
     """
-    net_folder_name = """{0}_Model.1""".format(net.name)
+    folder_name_base = "{0}_Model".format(net.name)
+    fold_index = _get_next_foldername_index(folder_name_base,directory)
+    net_folder_name = "{0}.{1}".format(folder_name_base,fold_index)
     #pass
     initial_working_dir = os.getcwd()
     print("Working directory when calling save:",initial_working_dir)
     
     #move to specified directory and create output folder
     os.chdir(directory)
+    
+    #Check if the folder already exists
+    ...
+    
     try:
         os.mkdir(net_folder_name)
     except FileExistsError:
@@ -236,8 +99,6 @@ def save_model(net,directory='.',csv_mode=False):
         raise
         
     #Extract other network parameters:
-        #hidden activation function
-        #output activation function
         #name 
         #topology
         #learning rate
@@ -258,7 +119,18 @@ def save_model(net,directory='.',csv_mode=False):
     #return the path of output folder in case it is needed later
     return output_path
         
-        
+def _get_next_foldername_index(name_to_check,dir_path):
+    
+    dir_content = os.listdir(dir_path)
+    dir_name_indexes = [int(item.split('.')[-1]) for item in dir_content if os.path.isdir(item) and name_to_check in item]    #extracting the counter in the folder name and then we find the maximum
+    
+    if len(dir_name_indexes) == 0:
+        return '1'
+    else:
+        highest_idx = max(dir_name_indexes)
+        return str(highest_idx + 1)
+    #find all folders that have name_to_check in them:
+    
         
         
         

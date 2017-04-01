@@ -43,5 +43,5 @@ setup(name='netbuilder',
       classifiers=['Programming Language :: Python',
                    'Programming Language :: Python :: 3',
                    'Development Status :: 3 - Alpha',
-                   'Operating System :: Linux']
+                   'Operating System :: Unix']
       )

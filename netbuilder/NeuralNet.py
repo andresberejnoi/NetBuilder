@@ -7,8 +7,9 @@
 # of that minima and converge 
 
 import numpy as np
-import _param_keys as keys #import keys for saving and loading network from file
-from activations import *  #import activation functions defined in the file, such as tanh and sigmoid
+from . import _param_keys as keys #import keys for saving and loading network from file
+from .activations import *  #import activation functions defined in the file, such as tanh and sigmoid
+from .loss import *
 #import tools         # this is a python file where I will put some functions before I decide to include them here directly
 
     
@@ -203,6 +204,21 @@ class Network(object):
         #self.out = I
         return I
 
+    def predict(self,inputs,hidden_activation=tanh,output_activation=tanh):
+        """
+        This function is very similar to feedforward, but makes sure that the input is in the correct format. It is intended for testing the final network
+        without adding additional if statements into the feedfoward function which will be used during training.
+        """
+        #if the input is a list and not a numpy array:
+        if not isinstance(inputs,np.ndarray):   #if imput is not numpy array
+            I = np.array(inputs)
+        
+        #now we arrange the inputs to be organized in rows if it is only one column
+        if len(I.shape) == 1:
+            I = I.reshape((1,I.shape[0]))
+        
+        output = self.feedforward(I,hidden_activation=hidden_activation,output_activation=output_activation)
+        return output
         
     def reversed_feed(self, outIn):
         """

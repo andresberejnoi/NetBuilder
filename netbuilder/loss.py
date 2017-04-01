@@ -4,7 +4,7 @@ Created on Sat Mar 25 21:24:00 2017
 
 @author: andres
 """
-
+import numpy as np
 def mean_squared_error(target,actual,derivative=False):
     """ 
     target: numpy array with values we want the network to approximate

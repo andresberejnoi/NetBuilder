@@ -6,10 +6,10 @@ Created on Fri Mar 17 00:25:09 2017
 @author: andresberejnoi
 """
 
-#from . import *    #this will everything necessary
-from . import Network, mean_squared_error
-from . import tanh,sigmoid
-from . import save_model,load_model
+from . import *    #this will import everything necessary
+#from . import Network, mean_squared_error
+#from . import tanh,sigmoid
+#from . import save_model,load_model
 
 import numpy as np
 

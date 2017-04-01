@@ -4,11 +4,15 @@ Created on Mon Mar 20 11:20:11 2017
 
 @author: Andres Berejnoi
 """
-from . import Network
-import _param_keys as keys
+from . import NeuralNet
+from .NeuralNet import Network
+#from . import keys
+#from . import Network, keys
+from . import _param_keys as keys
 import numpy as np
 import yaml
 import os
+
 
 def load_model(directory,is_csv=False):
     """

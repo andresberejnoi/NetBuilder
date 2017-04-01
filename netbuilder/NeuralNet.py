@@ -50,7 +50,7 @@ class Network(object):
         self.output_activation = None
         self.hidden_activation = None
     
-    def init(self,topology=[2,3,1],learningRate=0.01,momentum=0.1,name='Network',add_bias=True):
+    def init(self,topology,learningRate=0.01,momentum=0.1,name='Network',add_bias=True):
         '''
         topology: A Python list with integers indicating the shape of the network. 
                     i.e: [5,10,1]: this encodes a network of 3 layers (one input, 1 hidden, and 1 output). 

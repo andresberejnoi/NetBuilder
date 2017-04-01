@@ -99,7 +99,7 @@ class Network(object):
         params: dictionary with valid keys that can be obtained from reading a configuration file (or using _get_model()).
         weights_dict: a dictionary generated from reading an npz numpy file with numpy.load
         """
-        self.name = params[keys._nane]
+        self.name = params[keys._name]
         self.topology = params[keys._topology]
         self.learningRate = params[keys._learning_rate]
         self.momentum = params[keys._momentum]

@@ -6,9 +6,11 @@ Created on Fri Mar 17 00:25:09 2017
 @author: andresberejnoi
 """
 
+#from . import *    #this will everything necessary
 from . import Network, mean_squared_error
 from . import tanh,sigmoid
 from . import save_model,load_model
+
 import numpy as np
 
 #Some tests
@@ -103,7 +105,8 @@ def test_XOR():
     net.train(input_set=input_set,
               target_set=target_set,
               batch_size=4,
-              epochs=100)
+              epochs=1000,
+              print_rate=100)
     
     
     test_out = net.feedforward(input_set)
@@ -122,5 +125,6 @@ if __name__=='__main__':
     #net = test_XOR()
     
     #Test saving method
-    save_model(net=net)
+    output_path = save_model(net=net)
+    net_loaded = load_model(output_path)
     

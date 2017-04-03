@@ -209,11 +209,13 @@ class Network(object):
         This function is very similar to feedforward, but makes sure that the input is in the correct format. It is intended for testing the final network
         without adding additional if statements into the feedfoward function which will be used during training.
         """
+        I = inputs
         #if the input is a list and not a numpy array:
-        if not isinstance(inputs,np.ndarray):   #if imput is not numpy array
-            I = np.array(inputs)
+        if not isinstance(I,np.ndarray):   #if imput is not numpy array
+            I = np.array(I)
         
-        #now we arrange the inputs to be organized in rows if it is only one column
+        #now we arrange the inputs to be organized in rows if it is only one column.
+        #for example, if we have an array: array ([0,1,2,3,4,5,6,7,8,9]), its shape will be (10,) but we need it to be (1,10) as: array ([[0,1,2,3,4,5,6,7,8,9]])
         if len(I.shape) == 1:
             I = I.reshape((1,I.shape[0]))
         

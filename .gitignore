@@ -16,3 +16,4 @@ MANIFEST.in
 *.npz
 *.cfg
 *.yml
+test_docs/

@@ -1,11 +1,11 @@
-netbuilder.tests package
-========================
+netbuilder\.tests package
+=========================
 
 Submodules
 ----------
 
-netbuilder.tests.training_random module
----------------------------------------
+netbuilder\.tests\.training\_random module
+------------------------------------------
 
 .. automodule:: netbuilder.tests.training_random
     :members:

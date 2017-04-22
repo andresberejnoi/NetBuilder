@@ -12,6 +12,10 @@ Welcome to NetBuilder's documentation!
    
    all-about-me
 
+.. automodule:: netbuilder
+
+.. autoclass:: Network
+    :members:
 
 Indices and tables
 ==================

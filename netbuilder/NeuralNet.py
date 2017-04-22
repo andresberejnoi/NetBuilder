@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-    @author: andresberejnoi
+@author: andresberejnoi
+
+TODO: During training, if the network gets stuck in a local minima for several epochs,
+then randomly modify certain weights in the matrix. This might allow the network to get out
+of that minima and converge 
 """
-#TODO: During training, if the network gets stuck in a local minima for several epochs,
-# then randomly modify certain weights in the matrix. This might allow the network to get out
-# of that minima and converge 
 
 import numpy as np
 from . import _param_keys as keys #import keys for saving and loading network from file
@@ -16,14 +17,14 @@ from .loss import *
     
 #---------------------------------------------------------------------------------------------
 class NetworkError(Exception):
-    '''
+    """
     An exception object that can be raised to handle different situations.
     It is currently very simple.    
-    '''
+    """
     def __init__(self, msg):
-        '''
+        """
         msg: a string with a message to be displayed when this exception is raised.        
-        '''
+        """
         self.msg = msg
         
     def __str__(self):
@@ -57,7 +58,7 @@ class Network(object):
     # Initializers
     #
     def init(self,topology,learningRate=0.01,momentum=0.1,name='Network',add_bias=True):
-        '''
+        """
         topology: A Python list with integers indicating the shape of the network. 
                     i.e: [5,10,1]: this encodes a network of 3 layers (one input, 1 hidden, and 1 output). 
                         The input layer will have 5 neurons, the hidden layer will have 10, and the 
@@ -67,7 +68,7 @@ class Network(object):
                         the network oscillate during training and prevent it from "learning" patterns.
         momentum: A float, also used during the training process. It is related to how much the previous changes
                         affect the new ones.
-        '''
+        """
         self.topology = topology
         self.learningRate = learningRate
         self.momentum = momentum
@@ -118,9 +119,9 @@ class Network(object):
     # Overloading Operators:
     #
     def __str__(self):
-        '''
+        """
         For now, the string method simply returns the topology of the network.
-        '''
+        """
         return "Network: {0}".format(self.topology)
     
     __repr__ = __str__

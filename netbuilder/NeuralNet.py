@@ -175,7 +175,7 @@ class Network(object):
         """Gets the matrix weight at position idx in self.weights.
 
         Parameters
-        ---------
+        ----------
         idx : int
             Index corresponding to a layer in self.weights.
 
@@ -278,7 +278,6 @@ class Network(object):
 
         """
 
-        """
         I = inputs
         #if the input is a list and not a numpy array:
         if not isinstance(I,np.ndarray):   #if imput is not numpy array
@@ -292,8 +291,9 @@ class Network(object):
         output = self.feedforward(I,hidden_activation=hidden_activation,output_activation=output_activation)
         return output
 
+
     def reversed_feed(self, outIn):
-        """similar to the feedforward function but reversed. It takes an output or target vector, and returns the corresponding input vector. Nothing is stored by this function.
+        """ Like the feedforward function but reversed. It takes an output or target vector, and returns the corresponding input vector. Nothing is stored by this function.
 
         Parameters
         ----------
@@ -326,7 +326,7 @@ class Network(object):
             A function to compute the error (difference between the two inputs).
 
         Returns
-        ------
+        -------
         float
             The sum of all the differences between the two inputs.
 
@@ -360,7 +360,7 @@ class Network(object):
         """Backpropagation.
 
         Parameters
-        ---------
+        ----------
         input_samples : numpy array
             Contains all samples in a batch.
         target_outputs : numpy array
@@ -425,12 +425,12 @@ class Network(object):
         epochs : int, optional
             The number of iterations of the training process. One epoch is completed when
             all the training samples in a batch have been presented to the network once.
-        threshold_error : float,optional
+        threshold_error : float, optional
             The maximum error that the network should have. After completing one epoch,
             if the error of the network is below `threshold_error`, the training stops,
             otherwise, it must keep going until the error is lower, or the specified number
             of epochs has been reached.
-        batch_size: int, optional
+        batch_size : int, optional
             How many samples will make one mini batch. It is 0 by default, which means that one batch will contain all samples. Set to 1 for online training.
         error_func : function object, optional
             This is the function that computes the error of the epoch and used during backpropagation.

@@ -6,12 +6,10 @@ Created on Sat Mar 25 21:24:00 2017
 """
 import numpy as np
 def mean_squared_error(target,actual,derivative=False):
-    """ 
+    """A simple loss function. It computes the difference between target and actual and raises the value to the power of 2, and everything is divided by 2. The computed value is the error.
+ 
     target: numpy array with values we want the network to approximate
     actual: numpy array (same shape as target); the output of the network after feedforward
-    
-    A simple loss function. It computes the difference between target and actual and raises the value
-    to the power of 2, and everything is divided by 2. The computed value is the error.
     
     return: error
     """

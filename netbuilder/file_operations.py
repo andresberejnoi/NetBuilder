@@ -15,9 +15,11 @@ import os
 
 
 def load_model(directory,is_csv=False):
-    """
+    """Loads a network model that is saved in the specified directory.
+
     directory: str; folder path where network save files are stored
     """
+
     #remember current directory and move to desired directory
     start_dir = os.getcwd()
     os.chdir(directory)
@@ -55,13 +57,15 @@ def load_model(directory,is_csv=False):
 
     
 def save_model(net,directory='.',csv_mode=False):
-    """
+    """Creates a directory and saves the network model in it.
+
     directory: str; Directory where network save folder will be created.
     model: Network; the network to save to a file.
     csv_mode: boolean; if True then save network weights as a csv file. Otherwise, weights are saved as numpy format *.npz
     
     return: str; the path to the output folder so that it can be loaded later
     """
+
     folder_name_base = "{0}_Model".format(net.name)
     fold_index = _get_next_foldername_index(folder_name_base,directory)
     net_folder_name = "{0}.{1}".format(folder_name_base,fold_index)

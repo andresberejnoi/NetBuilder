@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-@author: andresberejnoi
+"""@author: andresberejnoi
 
 TODO: During training, if the network gets stuck in a local minima for several epochs,
 then randomly modify certain weights in the matrix. This might allow the network to get out
@@ -17,8 +16,8 @@ from .loss import *
     
 #---------------------------------------------------------------------------------------------
 class NetworkError(Exception):
-    """
-    An exception object that can be raised to handle different situations.
+    """ An exception object that can be raised to handle different situations.
+    
     It is currently very simple.    
     """
     def __init__(self, msg):
@@ -33,17 +32,17 @@ class NetworkError(Exception):
 #----------------------------------------------------------------------------------------------
 
 class Network(object):
-    """
-    Implements the methods and attributes of an Artificial Neural Network (Multilayer).
+    """Implements the methods and attributes of an Artificial Neural Network (Multilayer).
+
     The network implemented is a feedforward one, with backpropagation as the training algorithm.
-    This implementation uses the numpy library, so it needs to be available to be able to run
+    This implementation uses the numpy library, so it needs to be available to be able to run.
     """
     #np.random.seed()                       # start the random seed before using it
     #np.random.random()
     #Set up a dictionary of activation functions to access them more easily
 
     def __init__(self):
-        """Setting names for instance variables"""
+        """Setting names for instance variables."""
         self.topology = None
         self.learningRate = None
         self.momentum = None
@@ -58,7 +57,8 @@ class Network(object):
     # Initializers
     #
     def init(self,topology,learningRate=0.01,momentum=0.1,name='Network',add_bias=True):
-        """
+        """Initializes the network with specified shape and parameters.
+
         topology: A Python list with integers indicating the shape of the network. 
                     i.e: [5,10,1]: this encodes a network of 3 layers (one input, 1 hidden, and 1 output). 
                         The input layer will have 5 neurons, the hidden layer will have 10, and the 
@@ -119,9 +119,8 @@ class Network(object):
     # Overloading Operators:
     #
     def __str__(self):
-        """
-        For now, the string method simply returns the topology of the network.
-        """
+        """For now, the string method simply returns the topology of the network."""
+        
         return "Network: {0}".format(self.topology)
     
     __repr__ = __str__
@@ -131,9 +130,8 @@ class Network(object):
     # Getters
     #
     def get_num_connections(self):
-        """
-        Returns the number of features or synapses (connections) present in the network.
-        """
+        """Returns the number of features or synapses (connections) present in the network."""
+        
         synapses = 0
         for mat in self.weights:
             synapses += mat.size
@@ -141,22 +139,24 @@ class Network(object):
 
     def get_num_nodes(self):
         """Returns the number of nodes in the network (includes input and output nodes)"""
+        
         return sum(self.topology)
 
     def get_connection_mat(self, idx):
-        """
+        """Gets the matrix weight at position idx in self.weights.
+
         idx: int; the index corresponding to a layer in self.weights.
         returns: The connection weights for the layer requested (self.weights[idx])
         """
+
         try:
             return self.weights[idx]
         except:
             print("""Could not find layer {0} in network.\nNetwork has {1} layers.""".format(idx, self.size))
     
     def _get_model(self):
-        """
-        Returns a dictionary of network parameters that can be used for a configuration file. This function is used when saving the network.
-        """
+        """Returns a dictionary of network parameters that can be used for a configuration file. This function is used when saving the network."""
+
         parameters = {keys._topology:self.topology,
                       keys._size:self.size,
                       keys._name:self.name,
@@ -172,10 +172,14 @@ class Network(object):
     #              
                 
     def feedforward(self,inputs,hidden_activation=tanh,output_activation=tanh):
-        """
-        Performs the feedforward propagation of the inputs through the layers.
+        """Performs the feedforward propagation of the inputs through the layers.
+        
         inputs: numpy array of shape [number of samples x number of features per sample]; inputs to the first layer
+        hidden_activation: activation function for hidden layers. It must be able to accept numpy arrays.
+        output_activation: activation function for final layer. It must be able to accept numpy arrays.
+        returns: numpy array with shape [number of samples x number of output features].
         """
+
         # These two lists will contain the inputs and the outputs for each layer, respectively
         self.netIns = []                                                        
         self.netOuts = []
@@ -206,9 +210,12 @@ class Network(object):
         return I
 
     def predict(self,inputs,hidden_activation=tanh,output_activation=tanh):
-        """
-        This function is very similar to feedforward, but makes sure that the input is in the correct format. It is intended for testing the final network
-        without adding additional if statements into the feedfoward function which will be used during training.
+        """This function is very similar to feedforward, but makes sure that the input is in the correct format. It is intended for testing the final network without adding additional if statements into the feedfoward function which will be used during training.
+        
+        inputs: numpy array of shape [number of samples x number of features per sample]; inputs to the first layer
+        hidden_activation: activation function for hidden layers. It must be able to accept numpy arrays.
+        output_activation: activation function for final layer. It must be able to accept numpy arrays.
+        returns: numpy array with shape [number of samples x number of output features].
         """
         I = inputs
         #if the input is a list and not a numpy array:
@@ -224,34 +231,34 @@ class Network(object):
         return output
         
     def reversed_feed(self, outIn):
-        """
-        similar to the feedforward function but reversed. It takes an output or target vector,
-        and returns the corresponding input vector. Nothing is stored by this function.
+        """similar to the feedforward function but reversed. It takes an output or target vector, and returns the corresponding input vector. Nothing is stored by this function.
         
         outIn: the target vector that will be the input for this function. It would be the output of the normal feedforward fucntion.
-        
         """
+
         I = np.array(outIn)
         for W in self.weights[::-1]:                # We traverse backwards through the weight matrices
             I = np.dot(W,I)[:-1]                #The dot product of the two numpy arrays will have one extra element, corresponding to the bias node, but we do not need it, so we slice it off
         return I
     
     def _compute_error(self,expected_out,actual_out,error_func):
-        """
-        Computes the error for the network output.
+        """Computes the error for the network output.
         expected_out: numpy array with shape [batch_size (or number of samples) x number of output features]; 
                         This array should contain the target values that we want the network to produce once trained.
         actual_out: numpy array with shape equal to expected_out
         error_func: a function to compute the error
         """
+
         error = error_func(expected_out,actual_out)
         return error
     
     def optimize(self,gradients):
-        """
+        """Uses the gradients computed by the backpropagation method to update network weights.
+
         gradients: iterable containing numpy arrays; each numpy array is the gradient matrix computed by backpropagation for each layer matrix.
         performs stochastic gradient descent and adjusts the weights
         """
+
         for k in range(self.size):
             delta_weight = self.learningRate * gradients[k]
             full_change = delta_weight + self.momentum*self.last_change[k]
@@ -260,8 +267,8 @@ class Network(object):
         
                 
     def backprop(self, input_samples,target,output, error_func, hidden_activation=tanh,output_activation=tanh):
-        """
-        Backpropagation
+        """Backpropagation.
+
         input_samples: numpy array of all samples in a batch
         target_outputs: numpy array of matching targets for each sample
         output: numpy array; actual output from feedforward propagation. It will be used to train the network
@@ -269,6 +276,7 @@ class Network(object):
         error_func: function object; this is the function that computes the error of the epoch and used during backpropagation.
                     It must accept parameters as: error_func(target={target numpy array},actual={actual output from network},derivative={boolean to indicate operation mode})
         """
+
         #placeholder variables
         #delta = None
         #gradient_mat = None
@@ -302,8 +310,8 @@ class Network(object):
               hidden_activation=tanh,
               output_activation=tanh,
               print_rate=100):
-        """
-        Trains the network for the specified number of epochs.
+        """Trains the network for the specified number of epochs.
+        
         input_set: numpy array of shape [number of samples x number of features per sample]
         target_set: numpy array of shape [number of samples x number of features per output]
         epochs: The number of iterations of the training process. One epoch is completed when
@@ -404,7 +412,7 @@ class Network(object):
         
     # Information printers
     def print_training_state(self,epoch,error,finished=False):
-        """Prints the current state of the training process, such as the epoch, current error"""
+        """Prints the current state of the training process, such as the epoch, current error."""
         #print("Epoch:",iterCount)
         if finished:
             print("Network has reached a state of minimum error.")

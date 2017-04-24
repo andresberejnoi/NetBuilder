@@ -1,18 +1,29 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Mar 25 21:24:00 2017
+Created on Sat Mar 25 21:24:00 2017 @author: andres
 
-@author: andres
+This module contains error/loss functions that can be used to train the network
 """
+
 import numpy as np
 def mean_squared_error(target,actual,derivative=False):
-    """A simple loss function. It computes the difference between target and actual and raises the value to the power of 2, and everything is divided by 2. The computed value is the error.
+    """A simple loss function. It computes the difference between target and actual and 
+    raises the value to the power of 2, and everything is divided by 2. The computed value is the error.
  
-    target: numpy array with values we want the network to approximate
-    actual: numpy array (same shape as target); the output of the network after feedforward
+    Parameters
+    ----------
+    target : numpy array
+        Contains the values we want the network to approximate.
+    actual : numpy array 
+        Same shape as target. It is the output of the network after feedforward propagation.
     
-    return: error
+    Returns
+    -------
+    float/numpy array
+        If function is called in normal mode, then a float (the error) is returned. When derivative mode
+        is used, a numpy array is returned (same shape as input arrays).
     """
+    
     try:
         assert(target.shape==actual.shape)
     except AssertionError:

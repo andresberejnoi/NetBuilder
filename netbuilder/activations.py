@@ -9,8 +9,12 @@ import numpy as np
 def sigmoid(x, derivative = False):
     """Implements the sigmoid function, applying it element wise on an array x.
 
-    x: numpy array with arguments for the sigmoid function.
-    derivative: a boolean indicating whether to use the sigmoid function or its derivative.
+    Parameters
+    ----------
+    x : numpy array
+        This array contains arguments for the sigmoid function.
+    derivative : bool
+        Indicates whether to use the sigmoid function or its derivative.
     """
 
     if derivative:
@@ -22,8 +26,10 @@ def sigmoid(x, derivative = False):
 def tanh(x, derivative=False):
     """Implements the hyperbolic tangent function element wise over an array x.
 
-    x: numpy array with arguments for the hyperbolic tangent function.
-    derivative: a boolean value indicating whether to use the tanh function or its derivative.
+    x : numpy array
+        This array contains arguments for the hyperbolic tangent function.
+    derivative : bool
+        Indicates whether to use the hyperbolic tangent function or its derivative.
     """
 
     if derivative:

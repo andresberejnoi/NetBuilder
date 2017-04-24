@@ -17,7 +17,12 @@ import os
 def load_model(directory,is_csv=False):
     """Loads a network model that is saved in the specified directory.
 
-    directory: str; folder path where network save files are stored
+    Parameters
+    ----------
+    directory : str
+        Folder path where network save files are stored.
+    is_csv : bool, not implemented
+        A boolean flag to know if the model to load uses csv or numpy format for the weights.
     """
 
     #remember current directory and move to desired directory
@@ -59,11 +64,19 @@ def load_model(directory,is_csv=False):
 def save_model(net,directory='.',csv_mode=False):
     """Creates a directory and saves the network model in it.
 
-    directory: str; Directory where network save folder will be created.
-    model: Network; the network to save to a file.
-    csv_mode: boolean; if True then save network weights as a csv file. Otherwise, weights are saved as numpy format *.npz
+    Parameters
+    ----------
+    directory : str
+        Directory where network save folder will be created.
+    model : Network
+        Network object to save to a file.
+    csv_mode : bool, not implemented
+        if True then save network weights as a csv file. Otherwise, weights are saved as numpy format *.npz.
     
-    return: str; the path to the output folder so that it can be loaded later
+    Returns
+    -------
+    str
+        The path to the output folder so that it can be loaded later.
     """
 
     folder_name_base = "{0}_Model".format(net.name)
@@ -127,11 +140,21 @@ def save_model(net,directory='.',csv_mode=False):
     return output_path
         
 def _get_next_foldername_index(name_to_check,dir_path):
-    """
-    Finds folders with name_to_check in them in dir_path and extracts which one has the hgihest index
+    """Finds folders with name_to_check in them in dir_path and extracts which one has the hgihest index.
     
-    return: if there are no name matches, it returns the string '1'. Otherwise, it returns str(highest index found + 1)
+    Parameters
+    ----------
+    name_to_check : str
+        The name of the network folder that we want to look repetitions for.
+    dir_path : str
+        The folder where we want to look for network model repetitions.
+    
+    Returns
+    -------
+    str
+        If there are no name matches, it returns the string '1'. Otherwise, it returns str(highest index found + 1)
     """
+    
     dir_content = os.listdir(dir_path)
     dir_name_indexes = [int(item.split('.')[-1]) for item in dir_content if os.path.isdir(item) and name_to_check in item]    #extracting the counter in the folder name and then we find the maximum
     

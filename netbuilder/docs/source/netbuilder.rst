@@ -12,40 +12,40 @@ Subpackages
 Submodules
 ----------
 
-netbuilder\.NeuralNet module
-----------------------------
+netbuilder.NeuralNet module
+---------------------------
 
 .. automodule:: netbuilder.NeuralNet
     :members:
     :undoc-members:
     :show-inheritance:
 
-netbuilder\.activations module
-------------------------------
+netbuilder.activations module
+-----------------------------
 
 .. automodule:: netbuilder.activations
     :members:
     :undoc-members:
     :show-inheritance:
 
-netbuilder\.debug\_test module
-------------------------------
+netbuilder.debug_test module
+----------------------------
 
 .. automodule:: netbuilder.debug_test
     :members:
     :undoc-members:
     :show-inheritance:
 
-netbuilder\.file\_operations module
------------------------------------
+netbuilder.file_operations module
+---------------------------------
 
 .. automodule:: netbuilder.file_operations
     :members:
     :undoc-members:
     :show-inheritance:
 
-netbuilder\.loss module
------------------------
+netbuilder.loss module
+----------------------
 
 .. automodule:: netbuilder.loss
     :members:

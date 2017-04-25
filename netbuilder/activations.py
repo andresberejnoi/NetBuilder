@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Sat Mar 25 21:18:59 2017
+"""Created on Sat Mar 25 21:18:59 2017 @author: andres.
 
-@author: andres
+This module contains activation functions that are used during propagation
+and training of the network. Each one has its normal operating mode and a 
+derivative mode to be used during training.
 """
+
 import numpy as np
 
 def sigmoid(x, derivative = False):

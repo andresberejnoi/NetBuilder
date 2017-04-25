@@ -1,35 +1,35 @@
-netbuilder\.examples package
-============================
+netbuilder.examples package
+===========================
 
 Submodules
 ----------
 
-netbuilder\.examples\.image\_number module
-------------------------------------------
+netbuilder.examples.image_number module
+---------------------------------------
 
 .. automodule:: netbuilder.examples.image_number
     :members:
     :undoc-members:
     :show-inheritance:
 
-netbuilder\.examples\.simple\_sample module
--------------------------------------------
+netbuilder.examples.simple_sample module
+----------------------------------------
 
 .. automodule:: netbuilder.examples.simple_sample
     :members:
     :undoc-members:
     :show-inheritance:
 
-netbuilder\.examples\.test\_script module
------------------------------------------
+netbuilder.examples.test_script module
+--------------------------------------
 
 .. automodule:: netbuilder.examples.test_script
     :members:
     :undoc-members:
     :show-inheritance:
 
-netbuilder\.examples\.trainingShapes module
--------------------------------------------
+netbuilder.examples.trainingShapes module
+-----------------------------------------
 
 .. automodule:: netbuilder.examples.trainingShapes
     :members:

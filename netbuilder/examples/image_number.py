@@ -1,5 +1,4 @@
-"""
-Created on Fri Feb  5 16:32:41 2016
+"""Created on Fri Feb  5 16:32:41 2016
 
 @author: andresberejnoi
 """
@@ -80,18 +79,23 @@ shapes = {0: np.array([ [-0.5,-0.5,0.5,0.5,-0.5,-0.5],
 }
 
 class number(object):
-    """
-    This class provides methods for creating simulated image inputs for a neural network.
+    """This class provides methods for creating simulated image inputs for a neural network.
+
     The purpose is that it can generate inputs to train a neural network in pattern recognition of numbers.    
+
     """
+
     def __init__(self,number = 0, resolution = 36, noise = 0.0):
-        """Initializer"""
+        """Initializer.
+
+        """
+
         self.shape = number
         self.res = resolution
         self.noise = noise
-        
-        
-        
+
+
+
 
 def main():
     inputs1 = [shape.flatten() for shape in shapes.values()]            #creates a list of the values in the dictionary

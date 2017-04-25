@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Mar 20 11:20:11 2017
+"""Created on Mon Mar 20 11:20:11 2017
 
 @author: Andres Berejnoi
 """

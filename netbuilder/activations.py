@@ -17,6 +17,12 @@ def sigmoid(x, derivative = False):
         This array contains arguments for the sigmoid function.
     derivative : bool
         Indicates whether to use the sigmoid function or its derivative.
+
+    Returns
+    -------
+    numpy array
+        An array of equal shape to `x`.
+
     """
 
     if derivative:
@@ -24,14 +30,22 @@ def sigmoid(x, derivative = False):
         return sgm*(1-sgm)
     else:
         return 1/(1+np.exp(-x))
-        
+
 def tanh(x, derivative=False):
     """Implements the hyperbolic tangent function element wise over an array x.
 
+    Parameters
+    ----------
     x : numpy array
         This array contains arguments for the hyperbolic tangent function.
     derivative : bool
         Indicates whether to use the hyperbolic tangent function or its derivative.
+
+    Returns
+    -------
+    numpy array
+        An array of equal shape to `x`.
+
     """
 
     if derivative:

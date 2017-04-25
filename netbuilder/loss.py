@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Sat Mar 25 21:24:00 2017 @author: andres
+"""Created on Sat Mar 25 21:24:00 2017 @author: andres
 
 This module contains error/loss functions that can be used to train the network
+
 """
 
 import numpy as np

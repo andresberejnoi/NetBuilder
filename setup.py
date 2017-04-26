@@ -17,8 +17,8 @@ def package_files(directory):
     return paths
 
 long_desc = """Neural Network Builder
-The neural network class is in NeuralNet.py. It allows to easily create fully connected feedforward networks of any size allowed by available memory. 
-It uses numpy arrays as the primary data structure for the weight matrices. 
+The neural network class is in NeuralNet.py. It allows to easily create fully connected feedforward networks of any size allowed by available memory.
+It uses numpy arrays as the primary data structure for the weight matrices.
 With this class you can create deep neural networks very quickly (see some of the example files to see how to use it).
 """
 desc = """Allows to create and train fully connected feedforward deep neural networks in a simple way."""
@@ -39,9 +39,12 @@ setup(name='netbuilder',
       description=desc,
       long_description=long_desc,
       keywords=['Neural Network', 'machine learning', 'AI', 'artificial intelligence', 'MLP'],
-      install_requires=['numpy>=1.12','PyYAML>=3.12'],
+      install_requires=['numpy>=1.12','PyYAML>=3.12','sphinx>=1.5.5'],
       classifiers=['Programming Language :: Python',
                    'Programming Language :: Python :: 3',
                    'Development Status :: 3 - Alpha',
-                   'Operating System :: Unix']
+                   'Operating System :: Unix',
+                   'Intended Audience :: Education',
+                   'Intended Audience :: Developers',
+                   'Topic :: Machine Learning']
       )

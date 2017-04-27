@@ -48,9 +48,13 @@ class Network(object):
     #np.random.random()
     #Set up a dictionary of activation functions to access them more easily
 
-    def __init__(self):
+    def __init__(self, type='MLP'):
         """Setting names for instance variables.
 
+        Parameters
+        ----------
+        type : str, optional
+            Indicates what type of network should be created from available ones.
         """
         self.topology = None
         self.learningRate = None
@@ -556,3 +560,12 @@ class Network(object):
         self.Gradients = [None]*self.size
 
 ################################################################################################
+
+#defining an Recurrent Neural Network (RNN)
+
+class RNN (object):
+    """This needs to be implemented.
+    
+    """
+    
+    raise NotImplementedError

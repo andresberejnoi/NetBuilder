@@ -17,3 +17,4 @@ MANIFEST.in
 *.cfg
 *.yml
 test_docs/
+test_scripts/

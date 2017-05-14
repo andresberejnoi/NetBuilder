@@ -6,7 +6,7 @@ then randomly modify certain weights in the matrix. This might allow the network
 of that minima and converge.
 
 """
-
+import pyqtgraph as pg      # used for plotting training data
 import numpy as np
 from . import _param_keys as keys #import keys for saving and loading network from file
 from .activations import *  #import activation functions defined in the file, such as tanh and sigmoid
@@ -85,7 +85,7 @@ class Network(object):
             A name to identify the network more easily if it is saved to a file.
 
         """
-        self.topology = topology
+        self.topology = list(topology)
         self.learningRate = learningRate
         self.momentum = momentum
         self.name = name
@@ -407,13 +407,15 @@ class Network(object):
 
     def train(self,input_set,
               target_set,
-              epochs=5000,
+              validate_set=None,
+              epochs=1000,
               threshold_error=1E-10,
               batch_size=0,
               error_func=mean_squared_error,
               hidden_activation=tanh,
               output_activation=tanh,
-              print_rate=100):
+              print_rate=100,
+              plot=False):
         """Trains the network for the specified number of epochs.
 
         Parameters
@@ -455,6 +457,14 @@ class Network(object):
         except AssertionError:
                 print ("""Batch size '{0}' is bigger than number of samples available: '{1}'""".format(batch_size,num_samples))
                 raise
+                
+        #Prepare pyqtgraph objects for plotting if they have been requested
+        if plot is True:
+            plot_handler = pg.plot()    #creates handler for plotting window
+            error_list = []             #this will contain a list of the errors for each epoch
+            epoch_list = []             #a list of the epochs
+        
+        
         #----------------------------------------------------------------------
         if 0 < batch_size < num_samples:    #here we do mini batch or online
 
@@ -499,6 +509,14 @@ class Network(object):
                 if error <= threshold_error:                                        # when the error of the network is less than the threshold, the traning can stop
                     self.print_training_state(epoch,error, finished=True)
                     break
+                
+                #plot training data if requested
+                if plot is True:
+                    error_list.append(error)
+                    epoch_list.append(epoch)
+                    plot_handler.plot(epoch_list, error_list, clear=True)
+                    pg.QtGui.QApplication.processEvents()
+                
 
         else:       #here we do full batch
             mini_inputs = input_set
@@ -523,6 +541,13 @@ class Network(object):
                 if error <= threshold_error:                                        # when the error of the network is less than the threshold, the traning can stop
                     self.print_training_state(epoch,error, finished=True)
                     break
+                
+                #plot training data if requested
+                if plot is True:
+                    error_list.append(error)
+                    epoch_list.append(epoch)
+                    plot_handler.plot(epoch_list, error_list, clear=True)
+                    pg.QtGui.QApplication.processEvents()
 
     # Information printers
     def print_training_state(self,epoch,error,finished=False):

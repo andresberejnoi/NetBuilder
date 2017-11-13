@@ -7,7 +7,9 @@ With this package you can create deep neural networks very quickly.
 
 Package can be installed with pip:
 
-$ pip install netbuilder
+```sh
+pip install netbuilder
+```
 
 And documentation built with Sphinx can be found at:
 http://netbuilder.readthedocs.io/en/latest/

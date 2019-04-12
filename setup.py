@@ -46,5 +46,5 @@ setup(name='netbuilder',
                    'Operating System :: Unix',
                    'Intended Audience :: Education',
                    'Intended Audience :: Developers',
-                   'Topic :: Machine Learning']
+                   'Topic :: Scientific/Engineering :: Artificial Intelligence']
       )

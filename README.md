@@ -30,7 +30,7 @@ To use the package, it has to be imported first like:
   of the network are not defined yet. The second line tells it to initialize
   weights for a shape of two input nodes for the first layer and one output
   node at the final layer.
-  To create hidden layers, just add then to the topology parameter when
+  To create hidden layers, just add them to the topology parameter when
   initializing the network:
 
   >>> net = nb.Network()

@@ -2,11 +2,12 @@
 """Created on Sat Mar 25 21:18:59 2017 @author: andres.
 
 This module contains activation functions that are used during propagation
-and training of the network. Each one has its normal operating mode and a 
+and training of the network. Each one has its normal operating mode and a
 derivative mode to be used during training.
 """
-
-import numpy as np
+__all__ = ['sigmoid','tanh']
+#import numpy as np
+from netbuilder import np
 
 def sigmoid(x, derivative = False):
     """Implements the sigmoid function, applying it element wise on an array x.

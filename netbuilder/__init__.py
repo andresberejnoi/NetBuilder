@@ -18,7 +18,7 @@ Examples
     of the network are not defined yet. The second line tells it to initialize
     weights for a shape of two input nodes for the first layer and one output
     node at the final layer.
-    To create hidden layers, just add then to the topology parameter when
+    To create hidden layers, just add them to the topology parameter when
     initializing the network:
 
     >>> net = nb.Network()
@@ -28,19 +28,19 @@ Examples
     with 2 nodes, two hidden layers with 5 nodes each, and an output layer with
     one node.
     To perform a feedforward propagation an input array is needed. If the array
-    is a numpy array with shape [number of samples x number of features], then 
+    is a numpy array with shape [number of samples x number of features], then
     the `feedfoward` method can be used:
 
     >>> x = numpy.array([[0,1]])
     >>> net.feedforward(x)
     array([[ 0.82683518]])
 
-    Note above that the following format for x will cause an error because the 
+    Note above that the following format for x will cause an error because the
     shape is (,2) when it should be (1,2):
 
     >>> x = numpy.array([0,1])
 
-    The method `predict` is available for quick testing without worry about the 
+    The method `predict` is available for quick testing without worry about the
     format of the input array:
 
     >>> x = [0,1]
@@ -48,21 +48,28 @@ Examples
     array([[ 0.82683518]])
 
 """
-
+import numpy as np
 #from . import examples
 #from . import tests
-from . import __version__
-from .__version__ import __version__
-from . import activations
+#from . import __version__
+#from .__version__ import __version__
+#from . import activations
+#import _param_keys as keys
+from . import _param_keys as keys
 from .activations import *
-from . import loss
+#from . import loss
 from .loss import *
-from . import debug_test
-from .debug_test import *
-from . import file_operations
-from .file_operations import *
-from . import _param_keys
+#from . import debug_test
+#from .debug_test import *
+#from . import file_operations
+from .file_operations import load_model, save_model
+#from . import _param_keys as keys
 #import _param_keys as keys
 
-from . import NeuralNet
-from .NeuralNet import Network,NetworkError #import this at the end
+#from . import NeuralNet
+#from .NeuralNet import Network,NetworkError #import this at the end
+from .NeuralNet import Network, NetworkError
+
+name         = "netbuilder"
+version_info = (0,2,3)
+__version__  = '.'.join(str(c) for c in version_info)

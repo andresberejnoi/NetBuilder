@@ -7,7 +7,8 @@ of that minima and converge.
 
 """
 
-import numpy as np
+#import numpy as np
+from netbuilder import np
 from . import _param_keys as keys #import keys for saving and loading network from file
 from .activations import *  #import activation functions defined in the file, such as tanh and sigmoid
 from .loss import *
@@ -387,7 +388,7 @@ class Network(object):
 
         #Compute gradients and deltas
         for i in range(self.size):
-            back_index =self.size-1 -i                  # This will be used for the items to be accessed backwards  
+            back_index =self.size-1 -i                  # This will be used for the items to be accessed backwards
             if i!=0:
                 W_trans = self.weights[back_index+1].T        #we use the transpose of the weights in the current layer
                 d_activ = hidden_activation(self.netIns[back_index],derivative=True)

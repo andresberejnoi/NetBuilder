@@ -1,4 +1,4 @@
 """
 __version__ contains the current project version.
 """
-__version__='0.3'
+__version__='0.3.0'

@@ -8,9 +8,14 @@ of that minima and converge.
 """
 import pyqtgraph as pg      # used for plotting training data
 import numpy as np
-from . import _param_keys as keys #import keys for saving and loading network from file
-from .activations import *  #import activation functions defined in the file, such as tanh and sigmoid
-from .loss import *
+
+#import numpy as np
+#from netbuilder import np
+from netbuilder import keys #import keys for saving and loading network from file
+#from .activations import *  #import activation functions defined in the file, such as tanh and sigmoid
+from netbuilder import sigmoid,tanh
+from netbuilder import mean_squared_error
+#from .loss import *
 #import tools         # this is a python file where I will put some functions before I decide to include them here directly
 
 #---------------------------------------------------------------------------------------------
@@ -387,7 +392,7 @@ class Network(object):
 
         #Compute gradients and deltas
         for i in range(self.size):
-            back_index =self.size-1 -i                  # This will be used for the items to be accessed backwards  
+            back_index =self.size-1 -i                  # This will be used for the items to be accessed backwards
             if i!=0:
                 W_trans = self.weights[back_index+1].T        #we use the transpose of the weights in the current layer
                 d_activ = hidden_activation(self.netIns[back_index],derivative=True)
@@ -457,14 +462,14 @@ class Network(object):
         except AssertionError:
                 print ("""Batch size '{0}' is bigger than number of samples available: '{1}'""".format(batch_size,num_samples))
                 raise
-                
+
         #Prepare pyqtgraph objects for plotting if they have been requested
         if plot is True:
             plot_handler = pg.plot()    #creates handler for plotting window
             error_list = []             #this will contain a list of the errors for each epoch
             epoch_list = []             #a list of the epochs
-        
-        
+
+
         #----------------------------------------------------------------------
         if 0 < batch_size < num_samples:    #here we do mini batch or online
 
@@ -509,14 +514,14 @@ class Network(object):
                 if error <= threshold_error:                                        # when the error of the network is less than the threshold, the traning can stop
                     self.print_training_state(epoch,error, finished=True)
                     break
-                
+
                 #plot training data if requested
                 if plot is True:
                     error_list.append(error)
                     epoch_list.append(epoch)
                     plot_handler.plot(epoch_list, error_list, clear=True)
                     pg.QtGui.QApplication.processEvents()
-                
+
 
         else:       #here we do full batch
             mini_inputs = input_set
@@ -541,7 +546,7 @@ class Network(object):
                 if error <= threshold_error:                                        # when the error of the network is less than the threshold, the traning can stop
                     self.print_training_state(epoch,error, finished=True)
                     break
-                
+
                 #plot training data if requested
                 if plot is True:
                     error_list.append(error)

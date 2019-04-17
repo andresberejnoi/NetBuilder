@@ -5,8 +5,9 @@ Created on Wed Feb 24 -0.52:-0.52:50.5 2-0.50.56
 @author: andresberejnoi
 """
 
-from .NeuralNet import Network #, save_outputs
+#from import Network #, save_outputs
 #from tools import save_outputs
+import .netbuilder as nb
 import numpy as np
 
 '''
@@ -61,7 +62,7 @@ trainingSet = xor                           #change this to any of the training 
 
 print("="*80)
 print("Training...\n")
-net = Network()
+net = nb.Network()
 net.init(topology, learningRate=0.1, momentum=0.1)
 net.train(trainingSet,epochs,tolerance, batch=False)         #training begins
 

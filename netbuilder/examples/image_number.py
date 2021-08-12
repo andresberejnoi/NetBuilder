@@ -3,8 +3,8 @@
 @author: andresberejnoi
 """
 import numpy as np
-from .. import Network
-from .trainingShapes import shapes2
+import netbuilder as nb
+from trainingShapes import shapes2
 
 
 shapes = {0: np.array([ [-0.5,-0.5,0.5,0.5,-0.5,-0.5],
@@ -130,11 +130,14 @@ def main():
                np.array([-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,-0.5,0.5])]
     
     
-    trainingSet = list(zip(inputs,targets+targets))
+    #trainingSet = list(zip(inputs,targets+targets))
+    #print(f"-->TrainingSet info:\n\ttype={type(trainingSet)}\nData:\n{trainingSet}\n")
+    #trainingSet = np.ndarray(trainingSet)
     #trainingSet = list(zip(inputs,targets))
     
     topology = [36,50,50,10]
-    net = Network(topology,0.01,0.01)
+    net = nb.Network()
+    net.init(topology,0.01,0.01)
     #net.save("recog_number_weights.csv", transpose=True, keep_bias=False)
     
     #random_out = net.feedforward(inputs[1])
@@ -142,7 +145,9 @@ def main():
     epochs = 10000
     tolerance = 1E-5
     
-    net.train(trainingSet,epochs,tolerance)
+    inputs  = np.asarray(inputs)
+    targets = np.asarray(targets)
+    net.train(inputs,targets,epochs=epochs,threshold_error=tolerance)
     #print()
     #print(random_out)
     

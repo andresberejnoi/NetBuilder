@@ -285,7 +285,7 @@ class Network(object):
 
         I = inputs
         #if the input is a list and not a numpy array:
-        if not isinstance(I,np.ndarray):   #if imput is not numpy array
+        if not isinstance(I,np.ndarray):   #if input is not numpy array
             I = np.array(I)
 
         #now we arrange the inputs to be organized in rows if it is only one column.
@@ -401,7 +401,7 @@ class Network(object):
                 gradient_mat = np.dot(self.netOuts[back_index].T , delta)
                 self.Gradients[back_index] = gradient_mat
             else:
-                #Herewe calculate gradients for final layer
+                #Here we calculate gradients for final layer
                 d_activ = output_activation(self.netIns[back_index],derivative=True)
                 d_error = error_func(target,output,derivative=True)
                 delta = d_error * d_activ
@@ -410,7 +410,8 @@ class Network(object):
         # Update weights using the computed gradients
         self.optimize(gradients=self.Gradients)
 
-    def train(self,input_set,
+    def train(self,
+              input_set,
               target_set,
               validate_set=None,
               epochs=1000,
@@ -441,7 +442,7 @@ class Network(object):
             How many samples will make one mini batch. It is 0 by default, which means that one batch will contain all samples. Set to 1 for online training.
         error_func : function object, optional
             This is the function that computes the error of the epoch and used during backpropagation.
-            It must accept parameters as: error_func(target={target numpy array},actual={actual output from network},derivative={boolean to indicate the operation mode})
+            It must accept parameters as: error_func(target=<target numpy array>,actual=<actual output from network>,derivative=<boolean to indicate the operation mode>)
         print_rate : int, optional
             Controls the frequency of printing. It tells the trainer to print the error every certain number of epochs: print if current epoch is a multiple of print_rate.
             Increase this number to print less often, or reduce it to print more often.

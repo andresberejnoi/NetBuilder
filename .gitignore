@@ -1,5 +1,9 @@
 *.pyc
 *.py~
+
+#conda configuration file should not be ignored
+!environment.yml
+
 # Ignoring csv files for the moment
 *.csv
 *.swp

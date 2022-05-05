@@ -1,0 +1,51 @@
+name: netbuilder
+channels:
+  - anaconda
+  - defaults
+dependencies:
+  - _libgcc_mutex=0.1=main
+  - blas=1.0=openblas
+  - ca-certificates=2020.10.14=0
+  - certifi=2020.12.5=py39h06a4308_0
+  - dbus=1.13.18=hb2f20db_0
+  - expat=2.2.10=he6710b0_2
+  - fontconfig=2.13.0=h9420a91_0
+  - freetype=2.10.4=h5ab3b9f_0
+  - glib=2.56.2=hd408876_0
+  - gst-plugins-base=1.14.0=hbbd80ab_1
+  - gstreamer=1.14.0=hb453b48_1
+  - icu=58.2=he6710b0_3
+  - jpeg=9b=habf39ab_1
+  - ld_impl_linux-64=2.33.1=h53a641e_7
+  - libedit=3.1.20191231=h14c3975_1
+  - libffi=3.3=he6710b0_2
+  - libgcc-ng=9.1.0=hdf63c60_0
+  - libgfortran-ng=7.3.0=hdf63c60_0
+  - libopenblas=0.3.10=h5a2b251_0
+  - libpng=1.6.37=hbc83047_0
+  - libstdcxx-ng=9.1.0=hdf63c60_0
+  - libuuid=1.0.3=h1bed415_2
+  - libxcb=1.14=h7b6447c_0
+  - libxml2=2.9.10=hb55368b_3
+  - ncurses=6.2=he6710b0_1
+  - numpy=1.19.2=py39h87658db_0
+  - numpy-base=1.19.2=py39h0f7b65f_0
+  - openssl=1.1.1i=h27cfd23_0
+  - pcre=8.44=he6710b0_0
+  - pip=20.3.3=py39h06a4308_0
+  - pyqt=5.9.2=py39h2531618_6
+  - python=3.9.1=hdb3f193_2
+  - qt=5.9.7=h5867ecd_1
+  - readline=8.0=h7b6447c_0
+  - setuptools=51.0.0=py39h06a4308_2
+  - sip=4.19.13=py39h2531618_0
+  - sqlite=3.33.0=h62c20be_0
+  - tk=8.6.10=hbc83047_0
+  - tzdata=2020d=h14c3975_0
+  - wheel=0.36.2=pyhd3eb1b0_0
+  - xz=5.2.5=h7b6447c_0
+  - zlib=1.2.11=h7b6447c_3
+  - pip:
+    - pyqtgraph==0.11.1
+    - pyyaml==5.3.1
+prefix: /home/andresberejnoi/miniconda3/envs/netbuilder
